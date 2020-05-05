@@ -1,3 +1,9 @@
+/*
+    Problem : Yin and Yang 
+    link    : http://www.usaco.org/index.php?page=viewproblem2&cpid=286
+    solution : https://www.youtube.com/watch?v=3pk02p1-weU
+
+*/
 #include<bits/stdc++.h>
 
 using namespace std ; 
@@ -92,6 +98,7 @@ long long centro_it(int root , int p ){
 int main(){
     ios_base::sync_with_stdio(0) ; 
     cin.tie(0) ; 
+    //freopen("in.in" , "r" , stdin) ; 
     freopen("yinyang.in" , "r"  , stdin) ; 
     freopen("yinyang.out" , "w" , stdout) ; 
     cin>>n; 
