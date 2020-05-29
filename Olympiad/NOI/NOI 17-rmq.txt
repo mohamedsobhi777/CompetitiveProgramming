@@ -1,0 +1,182 @@
+/*
+        Problem: NOI 17-rmq
+        Problem Link : https://dunjudge.me/analysis/problems/1229/
+        handle : mohamedsobhi777
+
+        Solution: 
+                1- merge all queries with fixed answer (we will use sorting before merging), if they aren't connected then there is no answer
+                2- iterate over values from n-1 to 0, we know it consisted of the intersection of smaller ranges,
+                        so our current value i should be put in any index in the intersection of all its ranges,
+                                if there is no such index then there is no answer
+                3- after we added the value i, we can fill our range with unselected vaules that are strictly greater than i, if there is no 
+                        enough values of them then there is no answer, because the values of elements in our current range has a minimum value i
+                4- there may be some remaining numbers, we can handle them if we add the query (0 , n-1 , 0), it forces the solution to solve it
+                        filling the empty indices, and finishing the solution
+                O(N log N)
+
+*/
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1e5 + 7;
+
+int n, m;
+int a[N], b[N], c[N], A[N];
+int o[N];
+bool vis[N];
+vector<pair<int, int>> adj[N], adj2[N];
+
+
+struct DSU{
+    vector<int> fat ; 
+    void init(int n){
+        fat.resize(n) ; 
+        for(int i = 0 ; i < n; i++){
+            fat[i] = i ;
+        }
+    }
+    int fin(int x){
+        return fat[x] = (fat[x]==x?x:fin(fat[x]));
+    }
+    void unio(int a , int b){
+        int aa = fin(a) ; 
+        int bb = fin(b) ; 
+        if(aa!=bb){
+            fat[aa] = bb ; 
+        }
+    }
+    bool same(int A , int B){
+        return fin(A) == fin(B) ; 
+    }
+} d , ava; 
+
+void no()
+{
+        for (int i = 0; i < n; i++)
+        {
+                cout << -1 << " ";
+        }
+        exit(0);
+}
+
+void verify()
+{
+        for (int i = 0; i < m; i++)
+        {
+                int mn = N;
+                for (int j = a[i]; j <= b[i]; j++)
+                {
+                        mn = min(mn, A[j]);
+                }
+                if (mn != c[i])
+                {
+                        no();
+                }
+        }
+        for(int i = 0 ; i< n;i++){
+                if(o[A[i]]++ == 1){
+                        no() ; 
+                }
+        }
+}
+
+void print()
+{
+        for (int i = 0; i < n; i++)
+        {
+                cout << A[i] << " ";
+        }
+}
+
+int l[N], r[N];
+int L[N], R[N];
+
+
+void block(int i){
+        vis[i] = 1; 
+        d.unio(i , i+1) ;
+        ava.unio(A[i] , A[i] -1) ; 
+}
+
+int nxt(int x){
+        return d.fin(x) ;
+}
+
+pair<int  , int > prs[N] ;
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        memset(l, -1, sizeof l);
+        memset(r, -1, sizeof r);
+
+        cin >> n >> m;
+        d.init(n+10) ; 
+        ava.init(n+10) ; 
+        for(int i = 0 ;i < n;i++){
+                L[i] = -N ; 
+                R[i] = N ; 
+        }
+        for(int i = 0 ; i < n;i++){
+                prs[i] = {N , N} ; 
+        }
+        
+        for (int i = 0; i < m; i++)
+        {
+                cin >> a[i] >> b[i] >> c[i];
+                adj[c[i]].push_back({a[i], b[i]});
+                prs[c[i]] = min(prs[c[i]] , adj[c[i]].back()) ; 
+        }
+        adj[0].push_back({0 , n-1}) ; 
+
+        for (int i = 0; i < n; i++)
+        {
+                if (adj[i].empty())
+                        continue;
+                sort(adj[i].begin(), adj[i].end());
+        
+                L[i] = l[i] = adj[i][0].first;
+                R[i] = r[i] = adj[i][0].second;
+
+                for (int j = 0; j < adj[i].size(); j++)
+                {
+                        int li = adj[i][j].first;
+                        int ri = adj[i][j].second;
+                        L[i] = max(L[i] , li) ; 
+                        R[i] = min(R[i] , ri) ; 
+                        if(L[i] > R[i])
+                                no() ; 
+                        if (li > r[i] + 1)
+                                no();
+                        r[i] = max(r[i], ri);
+                }
+                adj2[l[i]].push_back({r[i], i});
+        }
+        for(int i = n-1 ;i >= 0 ;i --){
+                if(l[i] < 0)continue ;
+                bool k = 0 ;
+                for(int j = L[i] ;j <=R[i] ;j  = nxt(j+1) ){
+                        if(!vis[j]){
+                                A[j] = i ; 
+                                block(j) ;  
+                                k = 1;
+                                break ; 
+                        }
+                }
+                if(!k)no() ; 
+                for(int j = nxt(l[i]) ;j<=r[i] ; j  = nxt(j+1) ){
+                        if(vis[j]) continue ; 
+                        int u = ava.fin(n-1) ;
+                        if(u < i){
+                                no() ; 
+                        }
+                        A[j] = u ;                        
+                        block(j) ;
+                }
+        }
+        //verify() ;
+        print() ; 
+        return 0;
+}
