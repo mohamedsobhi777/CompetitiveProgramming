@@ -1,6 +1,6 @@
 /*
-        Problem : 
-        Problem Link : 
+        Problem : CSES 1112
+        Problem Link : https://cses.fi/problemset/task/1112/
 
         Solution : same as editorial
 
