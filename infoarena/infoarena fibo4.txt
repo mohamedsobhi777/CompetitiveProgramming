@@ -1,0 +1,82 @@
+/**
+ 
+ *      Problem : infoarena fibo4
+ *      Problem Link : https://www.infoarena.ro/problema/fibo4
+ *      handle : mohamedsobhi777
+ * 
+ *      solution :
+ *                     https://github.com/thecodingwizard/competitive-programming/blob/master/Infoarena/fibo4.cpp
+ 
+ */
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1e6 + 7 , mod = 666013;
+
+long long n, k;
+long long A[N];
+long long ans[N];
+long long f[2*N] ; 
+long long cycle;
+
+long long add(long long x , long long y){
+        return ((x%mod + y%mod) %mod + mod ) %mod ;
+}
+    
+void init(){
+
+        f[1] = f[2] = 1  ; 
+        for(int i = 3 ;i < 2* N ;i++){
+                f[i] = add(f[i-2] , f[i-1]) ; 
+                if(f[i] == 1 && f[i-1] == 1){
+                        cycle = i -2; 
+                        break ; 
+                }
+        }
+}
+
+long long F(long long x){
+        return f[(x-1)%cycle+1] ; 
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        freopen("fibo4.in" , "r" ,stdin) ; 
+        freopen("fibo4.out" ,"w" , stdout) ; 
+
+        init() ; 
+        cin>>n >> k ; 
+        for(int i = 0 ;i < k ;i++){
+                long long a , b ,c ; 
+                cin>>a>>b>>c ; 
+                         
+                long long fc0  = F(c) ; 
+                long long fc1 =  F(c+1) ; 
+
+                A[a] = add(A[a] , fc0 ) ; 
+                A[a+1] = add(A[a+1] , add(fc1 ,- fc0) ) ; 
+
+                A[b+1] = add(A[b+1] , -F(c+b-a+1) ) ; 
+                A[b+2] = add(A[b+2] , -F(c+b-a) ) ; 
+                
+        }
+        for(int i = 1 ;i <=n;i++){
+                A[i] = add(A[i] , A[i-1] ) ;
+                if(i > 1){
+                        A[i] = add(A[i] , A[i-2]) ; 
+                }
+                ans[i] = add(ans[i] , A[i]) ; 
+        }
+        for(int i = 1 ;i <=n;i++){
+                cout<< ans[i] <<" " ; 
+        }
+
+        return 0;
+
+}
+
