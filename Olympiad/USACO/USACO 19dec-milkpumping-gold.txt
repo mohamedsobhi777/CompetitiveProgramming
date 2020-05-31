@@ -1,0 +1,82 @@
+/*
+        Problem : USACO 19dec-milkpumping-gold
+        Problem Link : http://usaco.org/index.php?page=viewproblem2&cpid=969
+        handle : mohamedsobhi777
+
+        Solution : 
+                1- represent the cities as a graph with n nodes, and the pipes are the edges, the weight of an edge is the cost of the pipe
+                loop over each possible flow value ( 1 <=f <=1000) and consider only the edges with flow greater than or equal to f
+                if using only those edges, node 1 and node N are not connected, then we skip this value, if not we get the minimum distance 
+                between nodes 1 and n (using dijkstra) and update the answer 
+        
+*/
+
+#include<bits/stdc++.h>
+
+
+using namespace std ; 
+
+const int N =1e5 + 7 ;
+
+struct edge{
+        int v , c , f ; 
+} ; 
+
+vector<edge> adj[N] ;    
+int n , m ; 
+long long d[N] ;
+
+long long dijkstra(long long lmt ){
+
+        memset(d , -1 , sizeof d) ;
+
+        priority_queue<pair<long long , int > > q ; 
+
+        q.push({0 , 1}) ; 
+        d[1] = 0 ; 
+
+        while(q.size()){
+                long long dst = - q.top().first ; 
+                long long node = q.top().second ; 
+                q.pop() ; 
+
+                for(auto u : adj[node]){
+                        if(u.f < lmt ) continue ; 
+                        if(d[u.v] == -1 || dst + u.c < d[u.v]){
+                                d[u.v] = dst + u.c ; 
+                                q.push({-d[u.v] , u.v}) ; 
+                        }
+                }
+        }
+
+        if(d[n] == -1){
+                return 1e18 ; 
+        }
+        return d[n] ; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ; 
+        cin.tie(0) ; 
+        freopen("pump.in" , "r", stdin) ; 
+        freopen("pump.out" , "w" , stdout) ; 
+
+        cin>>n>>m ;
+        for(int i = 0 ; i< m ;i++){     
+                edge e ; 
+                int u , v ; 
+                cin>>u >> v ;
+                cin>>e.c >> e.f ; 
+                e.v = v ; 
+                adj[u].push_back(e) ; 
+                e.v = u ; 
+                adj[v].push_back(e) ; 
+        }
+
+        long double ans = 0 ; 
+        for(int i = 0 ;i <=1000 ;i ++){
+                ans = max(ans ,(long double) 1.0 * i / dijkstra(i) ) ; 
+        }
+        cout<< trunc( 1000000 * ans ) ; 
+        return 0; 
+}
