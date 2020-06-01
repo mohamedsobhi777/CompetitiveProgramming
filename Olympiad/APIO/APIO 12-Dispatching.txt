@@ -1,0 +1,83 @@
+/*
+        Problem : APIO 12-Dispatching
+        Problem Link : https://dmoj.ca/problem/apio12p1
+        handle : mohamedsobhi777
+
+        Solution : 
+                https://github.com/nikolapesic2802/Programming-Practice/blob/master/dis/main.cpp
+
+*/
+
+#include<bits/stdc++.h>
+
+using namespace std  ; 
+
+const int N =1e5 + 7 ; 
+
+int n , m; 
+int root ; 
+vector<int> adj[N] ; 
+int a[N] , b[N] ; 
+long long ans ;
+priority_queue<int> prs[N] ; 
+long long sum[N] ; 
+
+long long dfs(int x , int p){
+
+        long long ret = 0 ; 
+        int big = 0 ; 
+        for(auto u : adj[x]){
+                dfs(u , x) ; 
+                if( prs[u].size() > prs[big] .size() ){
+                        big = u ; 
+                }
+        }
+
+        if(big ){
+                swap(prs[x] , prs[big]) ; 
+                sum[x] = sum[big] ; 
+        }
+
+        sum[x] += a[x] ; 
+        prs[x].push(a[x]) ; 
+
+        for(auto u : adj[x]){
+                if(u == big ){
+                        continue ; 
+                }
+                while(prs[u] .size()){
+                        sum[x] += prs[u].top() ; 
+                        prs[x].push(prs[u].top()) ;
+                        prs[u].pop() ; 
+                }
+        } 
+
+        while(sum[x] > m){
+                sum[x] -= prs[x].top() ; 
+                prs[x].pop() ; 
+        }
+
+        ans = max(ans , 1LL * (long long) prs[x].size() * b[x] ) ; 
+        return  0; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ; 
+        cin.tie(0) ;
+
+        cin>>n>>m ; 
+        for(int i = 1 ;i <= n ;i++){
+                int u ; 
+                cin>>u>>a[i] >> b[i] ; 
+
+                if(!u){
+                        root = i ; 
+                }
+                else{
+                        adj[u].push_back(i) ; 
+                }
+        }
+        dfs(root , root) ; 
+        cout<< ans ; 
+        return 0 ; 
+}
