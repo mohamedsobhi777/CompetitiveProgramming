@@ -1,0 +1,151 @@
+/*
+        Problem : COCI 08-Najkraci
+        Problem Link : https://dmoj.ca/problem/coci08c3p6
+        handle : mohamedsobhi777
+
+        Solution : 
+
+                https://github.com/thecodingwizard/competitive-programming/blob/master/COCI/COCI%2008-Najkraci.cpp
+
+*/
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 5e3 + 7, mod = 1e9 + 7;
+
+int n, m;
+long long d[N];
+long long ans[N];
+long long dp[N];
+long long dpout[N];
+
+long long mul(long long x, long long y)
+{
+        return 1LL * (x % mod) * (y % mod) % mod;
+}
+
+int add(long long x, long long y)
+{
+        return 1LL * (x % mod + y % mod) % mod;
+}
+
+struct edge
+{
+        int id, u, v, c;
+        edge() {}
+        edge(int _id, int _u, int _v, int _c)
+        {
+                id = _id;
+                u = _u;
+                v = _v;
+                c = _c;
+        }
+} E[N];
+
+vector<edge> adj[N];
+
+void dijkstra(int st)
+{
+
+        priority_queue<pair<long long, int>> q;
+        d[st] = 0;
+        q.push({0, -1});
+        dp[st] = 1;
+
+        while (q.size())
+        {
+                int dst = -q.top().first;
+                int ix = q.top().second;
+                int node = st;
+                if (ix >= 0)
+                {
+                        node = E[ix].v;
+                }
+
+                q.pop();
+                if (dst != d[node])
+                {
+                        continue;
+                }
+
+                for (auto u : adj[node])
+                {
+                        if (dst + u.c < d[u.v] || d[u.v] == -1)
+                        {
+                                d[u.v] = dst + u.c;
+                                dp[u.v] = dp[node];
+                                q.push({-d[u.v], u.id});
+                        }
+                        else if (dst + u.c == d[u.v])
+                        {
+                                dp[u.v] = add(dp[u.v], dp[node]);
+                        }
+                }
+        }
+        return;
+}
+
+long long solve(int x)
+{
+        if (dpout[x] != -1)
+                return dpout[x];
+        long long ret = 1;
+
+        for (auto u : adj[x])
+        {
+                int U = u.u;
+                int V = u.v;
+                if (d[U] + u.c == d[V])
+                {
+                        ret = add(ret, solve(V));
+                }
+        }
+        return dpout[x] = ret;
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        //freopen("in.in", "r", stdin);
+
+        cin >> n >> m;
+        for (int i = 0; i < m; i++)
+        {
+                int u, v, c;
+                cin >> u >> v >> c;
+                E[i] = edge(i, u, v, c);
+                adj[u].push_back(E[i]);
+        }
+        for (int i = 1; i <= n; i++)
+        {
+                memset(d, -1, sizeof d);
+                memset(dp, 0, sizeof dp);
+                dijkstra(i);
+                memset(dpout, -1, sizeof dpout);
+                for (int j = 1; j <= n; j++)
+                {
+                        if (d[j] == -1)
+                        {
+                                d[j] = 1e14;
+                        }
+                }
+                for (int j = 0; j < m; j++)
+                {
+                        int u = E[j].u;
+                        int v = E[j].v;
+                        if (d[u] + E[j].c == d[v])
+                        {
+                                ans[j] = add(ans[j], mul(dp[u], solve(v)));
+                        }
+                }
+        }
+
+        for (int i = 0; i < m; i++)
+        {
+                cout << ans[i] << "\n";
+        }
+        return 0;
+}
