@@ -1,0 +1,123 @@
+/*
+
+        Problem : IZHO 12xor
+        Problem Link : https://github.com/mohamedsobhi777/CompetitiveProgramming/blob/master/Olympiad/USACO/USACO%2019dec-milkpumping-gold.txt
+        handle : mohamedsobhi777
+
+        Solution : 
+                we process the array from and keep the prefix xor values in a trie, to solve this problem we need to store more info in the trie nodes
+                let xr[i] be the xor of all the elements in the array with indices i, i is in the interval[0 , i]
+                for a segment[l,r], we want the longest one such that (xr[r] ^ xr[l-1]) > K
+                now we go the array considering the valid intervals ending at i, so we have xr[r] , and K, and we are looking for the term xr[l-1]
+                we can keep a suffix min for each node of the trie, vals[x] = min starting position of all the xors that can be obtained if we go through x
+                now depending on if the ith bit is set on K or not, we decide to choose either the same as the ith bit in xr[r] or not, and greedily do the 
+                transition in the trie
+
+*/
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 3e5 + 7;
+
+int n, k;
+int trie[N][32];
+int T = 1;
+int vals[N * 32];
+
+void mkm(int &x, int &v)
+{
+        if (vals[x] == -1)
+        {
+                vals[x] = v;
+        }
+        else
+        {
+                vals[x] = min(vals[x], v);
+        }
+}
+
+void add(int ix, int x)
+{
+        int cur = 0;
+        for (int i = 29; i >= 0; i--)
+        {
+                bool is = !!(x & (1 << i));
+                if (!trie[cur][is])
+                {
+                        trie[cur][is] = T++;
+                }
+                cur = trie[cur][is];
+                mkm(cur, ix);
+        }
+}
+
+int query(int x)
+{
+        int ret = N;
+        int cur = 0;
+        int got = 0;
+        for (int i = 29; i >= 0; i--)
+        {
+                int is = !!(k & (1 << i));
+                int mb = !!(x & (1 << i));
+
+                if (is)
+                {
+                        if (!trie[cur][!mb])
+                        {
+                                return N;
+                        }
+                        cur = trie[cur][!mb];
+                }
+                else
+                {
+                        if (trie[cur][!mb])
+                        {
+                                ret = min(ret, vals[trie[cur][!mb]]);
+                        }
+
+                        if (trie[cur][mb])
+                        {
+                                cur = trie[cur][mb];
+                        }
+                        else if (trie[cur][!mb])
+                        {
+                                return min(ret, trie[cur][!mb]);
+                        }
+                        else
+                                return N;
+                }
+        }
+        ret = min(ret, vals[cur]);
+        return ret;
+}
+
+int main()
+{
+        memset(vals, -1, sizeof vals);
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+
+        cin >> n >> k;
+        int xr = 0;
+        int ix = N;
+        int ans = 0;
+        add(0, 0);
+        for (int i = 1; i <= n; i++)
+        {
+                int t;
+                cin >> t;
+                xr ^= t;
+                add(i, xr);
+                int sol = query(xr);
+                if (i - sol > ans)
+                {
+                        ix = sol + 1;
+                        ans = i - sol;
+                }
+        }
+        cout << ix << " " << ans;
+        return 0;
+}
