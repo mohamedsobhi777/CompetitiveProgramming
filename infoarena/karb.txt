@@ -1,0 +1,119 @@
+/*
+
+        Problem : infoarena karb
+        Problem Link : https://www.infoarena.ro/problema/karb
+        handle : mohamedsobhi777
+
+        Solution : 
+                Let's call an edge important if its cost is 1 and if is is not in the MST, it won't be connected
+
+                we can find all important edges by generating any MST of 0-cost-edges, if we add all the 0-edges, and still can't make a MST, then we try to 
+                        complete it using some 1-edges (those 1-edges are important) 
+
+                now that we got the important edges, we add them to our answer, and then add 1-edges until the cost is k and we add them to the answer
+                        finally, we add 0-edges until we have a MST
+
+                O(N)
+
+*/
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1e5 + 7;
+
+int n, m, k;
+vector<pair<int, int>> a[2];
+
+struct DSU
+{
+        vector<int> fat;
+        void init(int n)
+        {
+                fat.resize(n);
+                for (int i = 0; i < n; i++)
+                {
+                        fat[i] = i;
+                }
+        }
+        int fin(int x)
+        {
+                return fat[x] = (fat[x] == x ? x : fin(fat[x]));
+        }
+        void unio(int a, int b)
+        {
+                int aa = fin(a);
+                int bb = fin(b);
+                if (aa != bb)
+                {
+                        fat[aa] = bb;
+                }
+        }
+        bool same(int A, int B)
+        {
+                return fin(A) == fin(B);
+        }
+} d1, d2;
+
+int floyd = 0;
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        freopen("karb.in", "r", stdin);
+        freopen("karb.out", "w", stdout);
+
+        cin >> n >> m >> k;
+        d1.init(n + 10);
+        d2.init(n + 10);
+        for (int i = 0; i < m; i++)
+        {
+                int u, v, c;
+                cin >> u >> v >> c;
+                a[c].push_back({u, v});
+        }
+
+        for (auto u : a[0])
+        {
+                if (!d1.same(u.first, u.second))
+                {
+                        d1.unio(u.first, u.second);
+                }
+        }
+
+        for (auto u : a[1])
+        {
+                if (!d1.same(u.first, u.second))
+                {
+                        d2.unio(u.first, u.second);
+                        d1.unio(u.first, u.second);
+                        floyd++;
+                        cout << u.first << " " << u.second << "\n";
+                }
+        }
+
+        for (auto u : a[1])
+        {
+                if (floyd < k)
+                {
+                        if (!d2.same(u.first, u.second))
+                        {
+                                d2.unio(u.first, u.second);
+                                floyd++;
+                                cout << u.first << " " << u.second << "\n";
+                        }
+                }
+        }
+        for (auto u : a[0])
+        {
+                if (!d2.same(u.first, u.second))
+                {
+                        d2.unio(u.first, u.second);
+                        cout << u.first << " " << u.second << "\n";
+                }
+        }
+
+        return 0;
+}
