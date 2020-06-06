@@ -1,0 +1,166 @@
+/*
+
+        Problem : JOISC 15-inheritance
+        Link :https://dunjudge.me/analysis/problems/732/
+        handle : mohamedsobhi777
+
+        Solution : 
+                https://github.com/mostafa-saad/MyCompetitiveProgramming/blob/master/Olympiad/JOI/JOISC-15-inheritance.txt
+
+*/
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 3e5 + 7;
+
+int n, m, k;
+int ans[N];
+
+int child = 1;
+
+int read_int()
+{
+        char r;
+        bool start = false, neg = false;
+        int ret = 0;
+        while (true)
+        {
+                r = getchar();
+                if ((r - '0' < 0 || r - '0' > 9) && r != '-' && !start)
+                {
+                        continue;
+                }
+                if ((r - '0' < 0 || r - '0' > 9) && r != '-' && start)
+                {
+                        break;
+                }
+                if (start)
+                        ret *= 10;
+                start = true;
+                if (r == '-')
+                        neg = true;
+                else
+                        ret += r - '0';
+        }
+        if (!neg)
+                return ret;
+        else
+                return -ret;
+}
+
+struct DSU
+{
+        int fat[1015];
+        int rnk[1015];
+        void init(int n)
+        {
+                for (int i = 0; i < n; i++)
+                {
+                        fat[i] = i;
+                        rnk[i] = 0;
+                }
+        }
+        int fin(int x)
+        {
+                return fat[x] = (fat[x] == x ? x : fin(fat[x]));
+        }
+        void unio(int a, int b)
+        {
+                int aa = fin(a);
+                int bb = fin(b);
+
+                if (rnk[aa] > rnk[bb])
+                {
+                        rnk[aa] = max(rnk[aa], rnk[bb] + 1);
+                        fat[bb] = aa;
+                }
+                else
+                {
+                        rnk[bb] = max(rnk[bb], rnk[aa] + 1);
+                        fat[aa] = bb;
+                }
+        }
+        bool same(int A, int B)
+        {
+                return fin(A) == fin(B);
+        }
+} d[10001];
+
+struct edge
+{
+        int u, v, c, ix;
+        edge() {}
+        edge(int _u, int _v, int _c, int _ix)
+        {
+                u = _u;
+                v = _v;
+                c = _c;
+                ix = _ix;
+        }
+        bool operator<(const edge &rhs)
+        {
+                return c > rhs.c;
+        }
+};
+
+vector<edge> edges;
+
+void oneMST()
+{
+        for (int i = 0; i < m; i++)
+        {
+                edge &u = edges[i];
+                int l = 1 , r = k ; 
+                int res = 0 ; 
+                while(l <=r){
+                        int mid = (l + r ) >> 1; 
+                        if(d[mid].same(u.u , u.v)) {
+                                l = mid+1 ; 
+                        }
+                        else{
+                                r = mid-1 ; 
+                                res = mid ; 
+                        }
+                }
+                if(res){
+                        d[res].unio(u.u , u.v) ; 
+                        ans[u.ix] = res ; 
+                }
+        }
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+
+        n = read_int();
+        m = read_int();
+        k = read_int();
+
+        for (int i = 1; i <= k; i++)
+        {
+                d[i].init(n + 10);
+        }
+
+        for (int i = 0; i < m; i++)
+        {
+                int u, v, c;
+                u = read_int();
+                v = read_int();
+                c = read_int();
+
+                edges.push_back(edge(u, v, c, i));
+        }
+        sort(edges.begin(), edges.end());
+        oneMST();
+
+        for (int i = 0; i < m; i++)
+        {
+                cout << ans[i] << "\n";
+        }
+
+        return 0;
+}
