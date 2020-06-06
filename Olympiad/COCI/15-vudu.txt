@@ -1,0 +1,116 @@
+/*
+        Problem : COCI 15-vudu  
+        Link : https://oj.uz/problem/view/COCI15_vudu
+        handle : mohamedsobhi777
+
+        Solution : 
+                Same as Editorial's
+
+*/
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1e6 + 7;
+
+int n, k;
+int a[N];
+
+
+vector<pair<long long , int > > srtd ; 
+
+int bit[N] ;
+int pos[N] ;
+
+int read_int()
+{
+        char r;
+        bool start = false, neg = false;
+        int ret = 0;
+        while (true)
+        {
+                r = getchar();
+                if ((r - '0' < 0 || r - '0' > 9) && r != '-' && !start)
+                {
+                        continue;
+                }
+                if ((r - '0' < 0 || r - '0' > 9) && r != '-' && start)
+                {
+                        break;
+                }
+                if (start)
+                        ret *= 10;
+                start = true;
+                if (r == '-')
+                        neg = true;
+                else
+                        ret += r - '0';
+        }
+        if (!neg)
+                return ret;
+        else
+                return -ret;
+}
+
+void add(int x){
+        for(;x < N ;x += x&-x ){
+                bit[x] ++ ; 
+        }
+}
+
+int get(int x){
+        if(x < 0 ) return 0; 
+        int ret =0 ; 
+        for(;x;x-=x&-x){
+                ret+=bit[x] ;
+        }
+        return ret ; 
+}
+
+int t =1 ; 
+
+void init(){
+        srtd.push_back({0 , 0}) ; 
+        sort(srtd.begin() , srtd.end()) ; 
+        for(int i = 0 ; i < (int) srtd.size() ;i++){
+                pos[srtd[i].second]  = i +1;
+        }
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+
+        n = read_int() ; 
+        for (int i = 0; i < n; i++)
+        {
+                a[i] = read_int() ;
+        }
+
+        k = read_int(); 
+        
+        long long sum = 0 ;
+
+        for (int i = 0; i < n; i++)
+        {
+                a[i] -= k;
+                sum+= a[i] ; 
+                srtd.push_back({sum , i +1}) ;
+        }
+
+        init() ;
+        
+        long long ans = 0;
+        long long pre = 0;
+        add(pos[0]) ;
+        
+        for (int i = 0; i < n; i++)
+        {
+                ans+= get(pos[i+1])  ;
+                add(pos[i+1]) ; 
+        }
+        cout << ans;
+        return 0;
+}
