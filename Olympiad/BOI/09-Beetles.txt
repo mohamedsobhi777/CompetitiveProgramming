@@ -1,0 +1,86 @@
+/*
+        Problem : Baltic 09-Beetles
+        Link : https://cses.fi/107/task/A
+
+        Solution : 
+                same as editorial's
+
+*/
+#include<bits/stdc++.h>
+
+using namespace std ; 
+
+const int N = 3e2 + 7 ; 
+
+int n , k ; 
+int ans = 0; 
+vector<pair<int , int > > vs; 
+int a[N]; 
+int dp[N][N][2] ; 
+
+int dist(int l , int r){
+        return abs(vs[r].first - vs[l].first) ; 
+}
+
+int all  ;
+
+int solve(int l , int r , bool dir ){
+        if(r - l == all)
+                return 0 ; 
+        if(dp[l][r][dir] != -1)
+                return dp[l][r][dir] ; 
+        int rem = all - (r - l ) ; 
+        int ret = 1e9 ; 
+        
+                if(l > 0 ){
+                        if(dir){
+                                ret = min(ret , rem * dist(l-1 , r) + solve(l-1 , r , 0 ) ) ; 
+                        }
+                        else{
+                                ret = min(ret , rem * dist(l-1 , l) + solve(l-1 , r , 0 ) ) ;                                 
+                        }
+
+                }
+                if(r +1< (int) vs.size()){
+                        if(dir){
+                                ret = min(ret , rem * dist(r , r+1) + solve(l , r+1 , 1 )) ; 
+                        }
+                        else{
+                                ret =min(ret , rem * dist(l , r+1) + solve(l , r+1 , 1 ))  ;
+                        }
+                }
+        
+
+        return dp[l][r][dir] = ret ; 
+}
+
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ;
+        //freopen("in.in" , "r" , stdin) ; 
+
+        cin>> n >> k ; 
+
+        for(int i = 0 ;i < n;i++){
+                cin>>a[i] ; 
+                vs.push_back({a[i] , i}) ; 
+        }
+        vs.push_back({0 , (int) vs.size()}) ; 
+        sort(vs.begin() , vs.end()) ; 
+        int ant = 0 ; 
+        for(int i = 0 ;i < (int) vs.size() ;i ++){
+                if(vs[i].second == (int) vs.size() -1 ){
+                        ant = i ;
+                        break ;
+                }
+        }
+        for(int i = 0 ;i <= n ;i++){
+                memset(dp , -1 , sizeof dp) ; 
+                all = i ;
+                ans = max(ans , i * k - solve(ant , ant , 0) ) ; 
+        }
+        
+        cout<< ans ; 
+        return 0 ; 
+}
