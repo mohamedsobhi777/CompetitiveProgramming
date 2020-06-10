@@ -1,0 +1,236 @@
+/*
+        Problem : infoarena lcdr
+        Link : https://www.infoarena.ro/problema/lcdr
+        handle : mohamedsobhi777
+
+        Solution : 
+                we define can[i][j] to be max value x, such that x is the width of a rectanle of ones, that has its top cells at row i, and has height j
+
+                the answer a query(x , y , l1 , l2), we should look for the rectangles starting at rows[l1   l1+1 ...  l2-l1+1 ], was height x,
+                and width at least y, if there is at least one such rectangle, then the answer is yes
+
+                notice that each query takes O(N), so we should look for better time complexity
+
+                now we make a list of sparse tables, with x as the first dimension, and the indices of the rows as the second dimension
+                cell(i , j) = the max width of a rectangle of all ones having height i, and its top row is j
+                
+                TIME COMPLEXITY : 
+                O(N^3) for preprocessing
+                O(logN) per query
+                OVERALL O(N^3 + Q * logN) 
+
+        note : use fast IO because the time limit is very tight
+*/
+#include<bits/stdc++.h>
+ 
+using namespace std ; 
+ 
+const int N = 5e2 + 7 ; 
+ 
+int n , m , k ; 
+string s[N] ; 
+int a[N][N] ;
+int pre[N][N]; 
+int can[N][N] ;
+
+int read_int(){
+	char r;
+	bool start=false,neg=false;
+	int ret=0;
+	while(true){
+		r=getchar();
+		if((r-'0'<0 || r-'0'>9) && r!='-' && !start){
+			continue;
+		}
+		if((r-'0'<0 || r-'0'>9) && r!='-' && start){
+			break;
+		}
+		if(start)ret*=10;
+		start=true;
+		if(r=='-')neg=true;
+		else ret+=r-'0';
+	}
+	if(!neg)
+		return ret;
+	else
+		return -ret;
+}
+ 
+int calc(int x0 , int y0 , int x1 , int y1){
+        int ret = pre[x1][y1] ; 
+        if(x0)ret -= pre[x0-1][y1] ; 
+        if(y0)ret -= pre[x1][y0-1] ; 
+        if(x0 && y0) ret+= pre[x0-1][y0-1] ; 
+        return ret ; 
+}
+int lg[N] ; 
+ 
+struct sparse{
+ 
+    int arr[N] ; 
+    int table[N][10] ; 
+ 
+    int func = 0 ; 
+    
+    int f(int A , int B , int F){
+        if(F)return max(A , B) ; 
+        return min(A , B) ; 
+    }
+ 
+    void init(int n , int F){
+        func = F ;
+
+        for(int i = 0 ; i< n ; i++)
+            table[i][0] = arr[i] ; 
+        for(int j = 1 ; j < 10 ; j++){
+            for(int i = 0 ;i +(1<<j) <= n; i++){
+                table[i][j] = f(table[i][j-1]  ,table[i+(1<<(j-1))][j-1] , F);
+            }
+        }
+    }
+ 
+    int get(int L  , int R ){
+            if( L > R) return 0 ; 
+        int range = R - L +1 ; 
+        int g = lg[range] ; 
+        return f( table[L][g] , table[R-(1<<g) +1] [g] , func) ; 
+    }
+ 
+} sps[N]; 
+ 
+stack<pair<int , int > > st ; 
+int ix ; 
+ 
+int poop(int i , int lyr){
+ 
+        int ret = 0 ;
+ 
+        ix = st.top().first ; 
+        int val = st.top().second ; 
+        st.pop() ; 
+ 
+        int x = i - ix ; 
+ 
+        if(val) 
+                can[lyr - val +1 ][val] = max(can[lyr - val + 1][val] , i - ix ) ;
+ 
+ 
+        return ret ; 
+ 
+}
+ 
+void prep2(){
+        for(int i = 2 ; i < N ;i++ ){
+            lg[i] = lg[i/2] + 1 ;
+        }        
+ 
+        vector<int> aux (m+1 , 0) ; 
+        for(int i = 0 ;i < n ;i++){
+                for(int j = 0 ;j <  m;j++){
+                        if(a[i][j])aux[j]++ ; 
+                        else aux[j] = 0 ; 
+                }
+ 
+                for(int j = 0 ;j <= m; j++){
+                        
+                        bool ok = 0 ;
+                        while(st.size() && st.top().second > aux[j]){
+                                poop(j , i) ; 
+                                ok =1 ; 
+                        }
+ 
+                        if(ok){
+                                st.push({ix , aux[j]}) ;
+                        }
+                        else{
+                                st.push({j , aux[j]}) ;
+                        }
+                        
+ 
+                }
+ 
+                while(st.size()){
+                        poop(m , i ) ;
+                }
+ 
+        }
+ 
+        for(int i = 0 ;i < n ;i++){
+                for(int j = 1 ;j <= n ;j++){
+                        for(int r = 1 ; r < j ; r++){
+                                can[i+r][j-r] = max(can[i+r][j-r] ,  can[i][j] ) ; 
+                        }
+                }
+        }
+ 
+        for(int i = 0 ;i < n ; i++){
+                for(int j = 1 ;j <= n; j++){
+                        sps[j].arr[i] = can[i][j] ; 
+                }
+        }
+        for(int i = 0 ; i <= n ;i++){
+                sps[i].init( n  , 1) ; 
+        }
+ 
+}
+ 
+ 
+int main(){
+        ios_base::sync_with_stdio(0)  ; 
+        cin.tie(0) ;
+        freopen("lcdr.in" , "r" , stdin) ; 
+        freopen("lcdr.out" , "w" , stdout) ;
+
+        n = read_int() ; 
+        m = read_int() ; 
+        k = read_int() ; 
+ 
+        char c ; 
+        for(int i= 0 ; i < n;i++){
+
+                for(int j = 0 ;j < m; j++){
+                        c = getchar() ; 
+                        while(c >'1' || c <'0'){
+                                c = getchar() ; 
+                        }
+                        a[i][j] = c - '0' ; 
+                }
+        }
+
+         for(int i = 0 ; i < n;i++){
+                for(int j = 0 ;j < m;j ++){
+                        if(!i && !j){
+                               pre[i][j] = a[i][j] ;  
+                        }
+                        else if(!i){
+                                pre[i][j] = pre[i][j-1] + a[i][j] ; 
+                        }
+                        else if(!j){
+                                pre[i][j] = pre[i-1][j] + a[i][j] ; 
+                        }
+                        else{
+                                pre[i][j] = pre[i-1][j] + pre[i][j-1] - pre[i-1][j-1]  + a[i][j] ; 
+                        }
+ 
+                }
+        }
+ 
+        prep2() ;
+ 
+        for(int i = 0 ;i < k ;i++){
+                int x  , y  , l1 , l2 ;  
+                x = read_int() ; 
+                y = read_int() ; 
+                l1 = read_int() ; 
+                l2 = read_int() ; 
+                l1-- ; l2-- ; 
+                if(x == 0 || y == 0 ){
+                        cout<<"1\n" ;
+                        continue ; 
+                }
+                bool ans = 0 ;
+                ans |= (sps[x].get(l1 , l2 - x +1) >= y ) ; 
+                cout<< ans <<"\n"; 
+        }
+        return 0 ; 
+}
