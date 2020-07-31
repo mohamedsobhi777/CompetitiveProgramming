@@ -1,0 +1,188 @@
+/*
+
+        Problem :JOI 17-joioi
+        link : https://oj.uz/problem/view/JOI17_joioi
+
+
+        Solution : 
+                let mn be the min value, and mx be the max value in the grid
+                the worst answer we can get is mx - mx, now we try to decrease it.
+
+                first observation : if mn and mx exist in the same region, then we difference will also be mx - mn,
+                so we are looking for the best configuration such that all the values A[i][j] that are equal to mn are
+                in the other region that contains all the values that are equal to mx
+
+                we can use binary search, and check the answer greedily
+
+                full solution : 
+                        https://github.com/stefdasca/CompetitiveProgramming/blob/master/JOI/JOI%2017-joioi.cpp
+
+
+*/
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 2002;
+
+int n, m;
+int a[N][N];
+int ans;
+int mn = 1e9 + 7, mx;
+
+int ok1[N][N], ok2[N][N];
+
+int mnA[N], mxA[N];
+int mnB[N], mxB[N];
+
+bool check(int val)
+{
+        memset(ok1, 0, sizeof ok1);
+        memset(ok2, 0, sizeof ok2);
+        for (int i = 0; i < m; i++)
+        {
+                mnA[i] = n;
+                mnB[i] = n;
+                mxA[i] = -1;
+                mxB[i] = -1;
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+                for (int j = 0; j < m; j++)
+                {
+                        if (a[i][j] - mn <= val)
+                                ok1[i][j] = 1;
+                        else
+                                ok1[i][j] = 0;
+
+                        if (mx - a[i][j] <= val)
+                                ok2[i][j] = 1;
+                        else
+                                ok2[i][j] = 0;
+
+                        if (!ok1[i][j] && !ok2[i][j])
+                                return 0;
+
+                        if (ok1[i][j] && !ok2[i][j])
+                        {
+                                mnA[j] = min(mnA[j], i);
+                                mxA[j] = max(mxA[j], i);
+                        }
+                        if (!ok1[i][j] && ok2[i][j])
+                        {
+                                mnB[j] = min(mnB[j], i);
+                                mxB[j] = max(mxB[j], i);
+                        }
+                }
+        }
+
+        //increasing starting from row 0
+        bool k1 = 1, k2 = 1;
+        int mnca = -1, mncb = -1;
+        for (int i = 0; i < m; i++)
+        {
+                mnca = max(mnca, mxA[i]);
+                mncb = max(mncb, mxB[i]);
+
+                if (mnca >= mnB[i])
+                        k1 = 0;
+                if (mncb >= mnA[i])
+                        k2 = 0;
+        }
+
+        if (k1 || k2)
+                return 1;
+
+        //decreasing starting from row 0
+        k1 = 1, k2 = 1;
+        mnca = -1, mncb = -1;
+
+        for (int i = m - 1; i >= 0; i--)
+        {
+                mnca = max(mnca, mxA[i]);
+                mncb = max(mncb, mxB[i]);
+
+                if (mnca >= mnB[i])
+                        k1 = 0;
+                if (mncb >= mnA[i])
+                        k2 = 0;
+        }
+
+        if (k1 || k2)
+                return 1;
+
+        // increasing starting at row n
+
+        k1 = 1, k2 = 1;
+        int mxca = n, mxcb = n;
+
+        for (int i = 0; i < m; i++)
+        {
+                mnca = min(mnca, mnA[i]);
+                mncb = min(mncb, mnB[i]);
+
+                if (mxca >= mxB[i])
+                        k1 = 0;
+                if (mxcb >= mxA[i])
+                        k2 = 0;
+        }
+        if (k1 || k2)
+                return 1;
+
+        //decreasing starting at row n
+
+        k1 = 1, k2 = 1;
+        mxca = n, mxcb = n;
+
+        for (int i = m - 1; i >= 0; i--)
+        {
+                mnca = min(mnca, mnA[i]);
+                mncb = min(mncb, mnB[i]);
+
+                if (mxca >= mxB[i])
+                        k1 = 0;
+                if (mxcb >= mxA[i])
+                        k2 = 0;
+        }
+        if (k1 | k2)
+                return 1;
+
+        return (k1 | k2);
+}
+
+int main()
+{
+
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        //freopen("in.in", "r", stdin);
+
+        cin >> n >> m;
+        for (int i = 0; i < n; i++)
+        {
+                for (int j = 0; j < m; j++)
+                {
+                        cin >> a[i][j];
+                        mn = min(mn, a[i][j]);
+                        mx = max(mx, a[i][j]);
+                }
+        }
+
+        int lo = 0, hi = mx - mn;
+
+        for (; lo <= hi;)
+        {
+                int mid = (lo + hi) >> 1;
+
+                if (check(mid))
+                        ans = mid, hi = mid - 1;
+                else
+                        lo = mid + 1;
+        }
+
+        cout << ans;
+
+        return 0;
+}
