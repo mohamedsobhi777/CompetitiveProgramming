@@ -1,0 +1,155 @@
+/*
+        Problem : infoarena plimbare3
+        link : https://infoarena.ro/problema/plimbare3
+        handle : mohamedsobhi777
+
+                main idea :
+                        for each problem (u ,v) (u is parent of v)  after removing it we end up with two disconnecten components, 
+                                the answer for that edge is (A + B + 1)
+                                        where A is the diameter of the tree rooted at v
+                                        and B is the diameter of the original tree excluding the subtree rooted at v
+
+                        we can use dp on tree to solve the problem 
+
+
+                full solution :
+                        https://github.com/stefdasca/CompetitiveProgramming/blob/master/Infoarena/plimbare3.cpp
+
+*/
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 2e5 + 7;
+
+int n;
+int ans[N];
+vector<pair<int, int>> adj[N];
+int mxd[N], mxd2[N], m2[N];
+
+int dfz(int x, int p)
+{
+        for (auto u : adj[x])
+        {
+                if (u.first == p)
+                        continue;
+                int vl = 1 + dfz(u.first, x);
+                if (vl > mxd[x])
+                {
+                        mxd2[x] = mxd[x];
+                        mxd[x] = vl;
+                }
+                else if (vl > mxd2[x])
+                {
+                        mxd2[x] = vl;
+                }
+        }
+        m2[x] = mxd[x] + mxd2[x];
+        for (auto u : adj[x])
+        {
+                if (u.first == p)
+                        continue;
+                m2[x] = max(m2[u.first], m2[x]);
+        }
+        return mxd[x];
+}
+
+int gen = 0;
+int cs3[N], mdo[N], nmac[N];
+
+void dfs(int x, int p)
+{
+
+        vector<pair<int, int>> mul, mul2;
+
+        for (auto u : adj[x])
+        {
+                if (u.first == p)
+                        continue;
+                mul.push_back({mxd[u.first] + 1, u.first});
+                mul2.push_back({m2[u.first], u.first});
+        }
+        sort(mul.begin(), mul.end());
+        sort(mul2.begin(), mul2.end());
+
+        gen = max(gen, nmac[x] + mxd[x]);
+        gen = max(gen, mxd[x] + mxd2[x]);
+        int mx2 = 0;
+        for (int i = 0; i < (int)adj[x].size(); i++)
+        {
+                pair<int, int> u = adj[x][i];
+                if (u.first == p)
+                        continue;
+                int nMax = 0, m22 = 0;
+                if (mul.size() > 1)
+                {
+                        nMax = ((mul.back().second == u.first) ? mul[mul.size() - 2].first : mul.back().first);
+                        m22 = ((mul2.back().second == u.first) ? mul2[mul2.size() - 2].first : mul2.back().first);
+                }
+
+                int mlen = 0;
+                int c3 = 0;
+
+                if (mul.size() > 1)
+                {
+                        mlen += nMax;
+                        c3 = max(c3, nmac[x] + mlen);
+                        mlen = 0;
+                        if (mul.size() > 2)
+                        {
+                                int k = 2;
+                                int j = 0;
+                                while (j < k)
+                                {
+                                        if (mul[mul.size() - 1 - j].second == u.first)
+                                        {
+                                                k++;
+                                                j++;
+                                                continue;
+                                        }
+                                        mlen += mul[mul.size() - 1 - j].first;
+                                        j++;
+                                }
+                        }
+                }
+
+                nMax = max(nMax, nmac[x]);
+
+                int diat = m2[u.first];
+                ans[u.second] = diat + 1 + max(mdo[x], nmac[x]);
+                ans[u.second] = max(ans[u.second], max(c3, cs3[x]) + 1 + diat);
+                ans[u.second] = max(ans[u.second], diat + 1 + m22);
+                ans[u.second] = max(ans[u.second], diat + max(nMax, mlen) + 1);
+                cs3[u.first] = max(cs3[x], c3);
+                mdo[u.first] = max(mdo[x], max(mlen, m22));
+                nmac[u.first] = nMax + 1;
+                dfs(u.first, x);
+        }
+        return;
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        //freopen("in.in", "r", stdin);
+        freopen("plimbare3.in", "r", stdin);
+        freopen("plimbare3.out", "w", stdout);
+        cin >> n;
+        for (int i = 0; i < n - 1; i++)
+        {
+                int u, v;
+                cin >> u >> v;
+                adj[u].push_back({v, i});
+                adj[v].push_back({u, i});
+        }
+
+        dfz(1, 1);
+        dfs(1, 1);
+
+        for (int i = 0; i < n - 1; i++)
+                cout
+                    << max(gen, ans[i]) << "\n";
+        return 0;
+}
