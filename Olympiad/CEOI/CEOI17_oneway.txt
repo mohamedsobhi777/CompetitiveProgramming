@@ -1,0 +1,176 @@
+
+
+
+/*
+	Problem : CEOI17_oneway
+	link : https://oj.uz/problem/view/CEOI17_oneway
+
+	solution : 
+		let's call an edge that can only be directed to the right a R-edge, similarly an edge that can only be to 
+		the left is a L-edge, and a B-edge is an edge that can be either to the left or to the right
+	
+		Now let's try to observe a few things about the problem 
+
+		Observation # 1: an edge is a B-edge if it belongs to at least one cycle
+			proof  : we can direct all the edges of the cycle in the same direction so that it becomes strongly 
+				 connected, then we can always go in and out of that cycle using its edges, moreover we can 
+				 direct all the edges in the opposite direction and we will also get a strongly connected component,
+
+		now that we got some of the B-edges, we want to know the R-edges and L-edges, 
+			we iterate over the pairs of cities and for a pair (u , v) , let c be LCA(u ,v)
+			now all the edges on the path(u,c) should be directed so that they lead us to c(if we start at u),
+			and all the edges on the path(v,c) should be directed so that they lead us to c (if we start at v)
+	
+
+		Observation #1 : an edge is a B-edge if it's neither a R-edge nor a L-edge
+			 proof : if somehow all our destinations can be reached without requiring that edge to have a 
+			 	 specific direction, then simply we shouldn't care about its direction, and since we know 
+			 	 all the R-edges and L-edges, then the remaining ones are all B-edges.
+
+
+*/
+
+#include<bits/stdc++.h>
+
+#define I inline void
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e5 + 7 ; 
+
+int n , m; 
+string ans ; 
+std::vector<pair<int , int > > adj[N];
+int tim[N] ;
+int t , tmr ; 
+int fat[N] , par[N] , fate[N] , h[N] ; 
+int st[N] , en[N] , a[N] , dir[N] ; 
+int up[N][18] ; 
+
+int cols[N] , col ; 
+
+bool upper(int u , int v){
+	return st[v] >= st[u] && en[v] <=en[u] ; 
+}
+
+int fin(int x){
+	if(x == fat[x])return x ; 
+	return fat[x] = fin(fat[x]) ; 
+}
+
+I link(int u , int v){
+	int uu = fin(u) ; 
+	int vv = fin(v) ; 
+	if(uu != vv){
+		fat[uu] = vv ;
+	}
+}
+
+I rec(int u , int v , int mask){
+
+	if(tim[u] < tim[v])swap(u , v) ; 
+	u = fin(u) ; 
+	while( h[v] < h[u]){
+		if(!a[fate[u]]){
+			if(mask  == 1){
+				a[fate[u]] = (dir[fate[u]] == u ? 1 : 2 ) ; 
+			}else if(mask == 2){
+				a[fate[u]] = (dir[fate[u]] == u ? 2 : 1) ; 
+			}
+			else{
+				a[fate[u]] = mask ;
+			}
+		}
+		link(u , up[u][0]) ; 
+		u = fin(u) ; 
+	}
+}
+
+int lca(int u , int v){
+	if(upper(u , v))return u ; 
+	if(upper(v , u))return v ;
+	for(int i = 17 ; i>= 0 ;i--){
+		if(!upper(up[u][i] , v)){
+			u = up[u][i];
+		}
+	}
+	return up[u][0] ; 
+}
+
+I dfs(int x , int p ){
+
+	tim[x] = ++ t;
+	st[x] = ++ tmr ;
+	up[x][0] = p ; 
+	h[x] = h[p]  + 1 ; 
+
+	for(int i = 1;i < 18 ;i++){
+		up[x][i] = up[up[x][i-1]][i-1] ; 
+	}
+	for(auto u : adj[x]){
+		if(u.first == p)continue ; 
+		if(tim[u.first]){
+			int l = lca(u.first , x) ; 
+			rec(x , u.first , 3) ;
+			a[u.second] =  3;
+
+		}else{
+			fate[u.first] = u.second ; 
+			dfs(u.first , x) ;
+		}
+	}
+	en[x] = ++ tmr ;
+}
+
+
+I pre(){
+	for(int i = 0 ; i < N ;i++)
+		fat[i] = i ; 
+}
+
+
+int main(){
+	ios_base::sync_with_stdio(0) ; 
+	cin.tie(0) ; 
+	//freopen("in.in" , "r" , stdin) ; 
+	pre() ; 
+	cin >> n >> m ; 
+	for(int i = 0 ;i < m ;i++){
+		int u , v; 
+		cin >> u >> v ; 
+		dir[i] = v ; 
+		if(u == v){
+			a[i] = 3 ;
+			continue ;
+		}
+		adj[u].push_back({v , i}) ; 
+		adj[v].push_back({u , i }) ; 
+	}
+	for(int i = 1; i<=n;i++)
+		if(!tim[i])
+			dfs(i, i ) ; 
+
+		int k ; cin >> k ;
+		for(int i = 0 ;i < k ;i++){
+			int u , v ;
+			cin >> u >> v; 
+			if(u == v)continue ; 
+			int lc = lca(u , v) ;
+
+			rec(u , lc , 1) ; 
+			rec(v , lc , 2) ; 
+		}
+
+		for(int i = 0 ;i < m;i++){
+			if(a[i] == 3)ans+='B' ; 
+			else if(a[i] == 2)ans+='R' ;
+			else if(a[i] == 1) ans+='L' ;
+			else ans+='B' ;
+		}
+
+		cout<< ans ;
+
+		return 0 ;
+	}
