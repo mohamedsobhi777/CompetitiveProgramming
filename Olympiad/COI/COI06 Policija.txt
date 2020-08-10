@@ -1,0 +1,182 @@
+/*
+
+	Problem : COI06 Policija
+	Link : https://dmoj.ca/problem/coi06p2
+	handle : mohamedsobhi777
+
+	Solution : 
+
+		case 1 : we want to know if after removing an edge(e1 , e2) whether the nodes u and v are connected with a simple path or not.
+			 Because we know that the graph is initially connected, we can deduce that this edge must be an bridge so that 
+			 after removing it we have two components, also u and v must belong to different components that will be created
+			 if that edge is removed, if both conditions are satsified then u and v will be seperated after removing edge(e1 , e2) 
+
+		Case 2 : 
+			this case is more interesting , we want to know if u and v will be seperated after removing the node x
+
+			let (lc) be the LCA of the two nodes u and v, now we will break the problem into smaller subproblems
+				u and v want to meet at some node of the graph without passing through x, and they must go to node (lc)
+				so we check seperately if u and v can go to the lc without hitting the node x
+
+
+
+				now the smaller problem we need to solve is the following: 
+					given three nodes a , b , c, can we from a to b without hitting c,
+					
+					if c lies between a and b on the simple path of the dfs tree of the graph, then we need to check if they
+					 	can somehow avoid node c using some backedges (edges that disappeared in the dfs)
+						
+					
+					and if c isn't on that path then we can go from a to b using span edges (edges from the dfs tree)
+
+	O(N + M)
+*/
+
+
+#include<bits/stdc++.h>
+
+#define I void inline 
+
+using namespace std ; 
+
+using ll = long long ; 
+using ld = long double ; 
+
+
+const int N =5e5 + 7 ;
+
+int vis[N] ; 
+int tim[100005] , low[100005] ,st[100005] , en[100005] , h[100005] , fat[100005] ;  
+int t ; 
+int n , m ; 
+std::vector<int> adj[N]; 
+int up[N][18] ; 
+int tmr ; 
+
+
+I dfs(int x , int p){
+	st[x] = ++ tmr ; 
+	tim[x] = low[x] = ++ t; 
+	h[x] = h[p] + 1 ; 
+	fat[x] = p ;  
+
+	up[x][0] = p; 
+	for(int i = 1 ; i< 18 ;i++)
+		up[x][i] = up[up[x][i-1]][i-1] ; 
+
+	for(auto u :adj[x]){
+		if(u == p)continue ; 
+		if(tim[u]){
+			low[x] = min(low[x] , tim[u]) ; 
+
+		}
+		else{
+			dfs(u , x) ; 
+			low[x] = min(low[x] , low[u]) ; 
+		}
+	}
+	en[x] = ++ tmr ; 
+}
+
+bool upper(int u , int v){
+	return st[v] >= st[u] && en[v] <=en[u] ; 
+}
+
+int lca(int u , int v){
+	if(upper(u , v))return u ; 
+	if(upper(v , u))return v ;
+	for(int i = 17 ; i >= 0 ; i--){
+		if(!upper(up[u][i] , v)){
+			u = up[u][i] ; 
+		}
+	}
+	return up[u][0] ; 
+}
+
+int up_above(int u , int v){
+	for(int i =17 ; i>=0 ;i --){
+		if(!upper(up[u][i] , v)){
+			u = up[u][i] ;
+		}
+	}
+
+	return u ;  
+}
+
+int walk(int u , int v){
+	int lc = lca(u , v) ; 
+	return h[u] + h[v] - 2 * h[lc] ; 
+}
+
+int dist(int u , int v){
+	return walk(u , v) ; 
+	if(h[u] > h[v])swap(u , v) ; 
+	return h[v] - h[u] ; 
+}
+
+bool road(int u , int v , int c){	
+	if(dist(u , c) + dist(v , c) == dist(u , v)) {
+		int x = up_above(u , c) ; 
+		return low[x] < tim[c] ; 
+	}
+	return 1 ; 
+}
+
+bool city(int u , int v , int c){
+	int lc = lca(u , v) ; 
+	return road(u , lc , c) && road(v , lc , c) ; 
+}
+
+bool path(int u , int v , int e1 , int e2){
+
+	if(tim[e1] > tim[e2]){
+		swap(e1 , e2) ; 
+	
+	}
+
+	int upp = upper(e2 , u) + upper(e2 , v) ; 
+	if(upp == 1){
+		if(low[e2] > tim[e1])return 0 ; 
+	}
+
+	return 1 ; 
+}
+
+
+int main(){
+
+
+	ios_base::sync_with_stdio(0) ; 
+	cin.tie(0) ; 
+	//freopen("in.in" , "r" , stdin) ;
+	cin >> n >> m; 
+	for(int i = 0 ;i < m ;i++){
+		int u , v; 
+		cin >> u >> v ; 
+		adj[u].push_back(v) ; 
+		adj[v].push_back(u) ; 
+	}
+
+	dfs(1 , 1) ; 
+
+	int k ; 
+	cin >> k ; 
+	while(k -- ){
+		int id , u , v, l = 0  , r; 
+		cin >> id ;
+
+		if(id == 1){
+			cin >> u >> v >> l >> r ; 
+			cout<< (path(u , v, l , r) ? "yes" : "no")<<"\n" ; 
+		}
+		else{
+			cin >> u >> v >> r ;  
+			cout<< (city(u , v , r) ? "yes" : "no") <<"\n" ; 
+		}
+	}
+
+
+
+	return 0; 
+
+}
