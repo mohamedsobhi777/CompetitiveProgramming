@@ -1,0 +1,121 @@
+
+/*
+	
+	Problem : IOI 05-mountains
+	Link : https://contest.yandex.com/ioi/contest/566/problems/C/?success=33771985#2537/2014_07_15/mqUP5kfN5U
+
+	Solution :
+		Same as editorial
+
+*/
+
+#include<bits/stdc++.h>
+
+#define I inline void 
+
+using namespace std ; 
+
+using ld = long double ; 
+using ll = long long ; 
+
+const int N =(1<<22) , MaxN = (1<<30) , mod = 1e9 + 7 ; 
+
+int n;   
+
+struct node{
+	int lazy = 0  , m = 0 , sum = 0  ; 
+	int c[2] = {-1 , -1} ; 
+	bool prop = 0 ; 
+}; 
+
+std::vector<node> tree;
+
+I expand(int x , int L , int R){
+	if( tree[x].c[0] != -1 || L == R)
+		return ; 
+	node nod ; 
+	tree[x].c[0] = tree.size() ; tree.push_back(nod) ; 
+	tree[x].c[1] = tree.size() ; tree.push_back(nod) ; 
+}
+
+I push(int node, int L , int R){
+	if(tree[node].prop){
+
+		if(L!= R){
+			expand(node, L , R) ;
+			tree[tree[node].c[0]].lazy = tree[tree[node].c[1]].lazy = tree[node].lazy ; 
+			tree[tree[node].c[0]].prop = tree[tree[node].c[1]].prop = 1 ; 
+		}
+		tree[node].sum = tree[node].m =1ll *  tree[node].lazy * (R - L + 1ll ) ; 
+		tree[node].prop = 0 ; 
+	}
+}
+
+I update(int node , int L , int R , int l , int r , int val ){
+
+	push(node , L , R) ;	
+	if(l > r || l > R || r < L)
+		return ; 
+	if(L>=l&&R<=r){
+		tree[node].lazy = val ; 
+		tree[node].prop = 1 ; 
+		push(node , L , R) ; 
+		return ; 
+	}
+	int mid = (L + R) >> 1;  
+
+	expand(node , L , R) ;
+
+	update(tree[node].c[0] , L ,mid , l , r , val ) ; 
+	update(tree[node].c[1] , mid+1 , R , l , r , val) ; 
+
+	tree[node].sum = tree[tree[node].c[0]].sum + tree[tree[node].c[1]].sum ; 
+	tree[node].m = max(tree[tree[node].c[0]].m , tree[tree[node].c[0]].sum + tree[tree[node].c[1]].m) ; 
+}
+
+int walk(int node , int L , int R , int h ){
+	push(node , L , R) ; 
+	if(L == R)
+		return L - 1; 
+	int mid = (L + R) >> 1; 
+	expand(node ,L , R) ;
+	push( tree[node].c[0] , L , mid) ; 
+
+	int s1 = tree[tree[node].c[0]].m ;
+
+	if(s1 > h)
+		return walk( tree[node].c[0] , L , mid , h ) ; 
+	return walk( tree[node].c[1] , mid+1 , R , h - tree[tree[node].c[0]].sum ) ; 
+}
+
+
+int main(){
+	ios_base::sync_with_stdio(0) ; 
+	cin.tie(0) ; 
+	//freopen("in.in"  ,"r" , stdin) ; 
+
+	node root ; 
+	tree.push_back(root) ; 
+
+	int n ; 
+	cin >> n ;
+	while(1){
+		char c ; 
+		cin >> c ; 
+		if(c == 'Q'){
+			int h ; 
+			cin >> h ; 
+			cout<< min( n , walk(0  , 1 , n + 1 , h ) )  <<"\n" ;
+		}
+		else if(c == 'I'){
+			int a , b , c; 
+			cin >> a >> b >> c ; 
+			update(0 , 1 , n  +1  , a , b , c) ;
+		}
+		else{
+			break ; 
+		}
+	}
+
+	return 0 ; 
+}
