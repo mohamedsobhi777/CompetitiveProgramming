@@ -1,0 +1,131 @@
+/*
+
+	Problem : 13-parovi
+	Link : https://dunjudge.me/analysis/problems/1408/
+	handle : mohamedsobhi777
+
+	Solution : 
+
+		Obviously the problem will be solved with digit dp technique, 
+
+		first we append zeros to the beginning of A, such that A and B are of equal length
+			
+		for every index i  we calculate (d =  how many pairs of numbers (n1 , n2)) such that 
+			on the ith position:	
+				n1 has the digit j and n2 has the digit k
+
+			now we add  abs(j - k ) * d to the answer 
+
+	O( N * 2^4 )
+*/
+
+#include<bits/stdc++.h>
+
+#define I inline void 
+
+using namespace std ; 
+
+using ld = long double ; 
+using ll = long long ; 
+
+const int N = 1e5 + 7 , MaxN = (1<<30) , mod = 1e9 + 7 ; 
+
+int n;   
+string A , B ; 
+
+int dp1[N][2][2][2][2] ; 
+int dp2[N][2][2][2][2] ;
+
+
+bool okay(int i , int d , int flag1 , int flag2){
+	if(!flag1){
+		if(d < A[i])
+			return 0 ; 
+	}
+	if(!flag2){
+		if(d > B[i])
+			return 0 ; 
+	}
+	return 1 ; 
+}
+
+ll sum ; 
+
+int solve2(int i , bool flag1 , bool flag2 , bool flag3 , bool flag4){
+
+	if( dp2[i][flag1][flag2][flag3][flag4] != -1)
+		return  dp2[i][flag1][flag2][flag3][flag4] ; 
+	
+	if(i == n)
+		return 1 ;
+
+	int ret = 0 ; 
+
+	for(int j = 0 ;j < 10 ;j ++){
+		for(int k = 0 ; k < 10 ; k ++){
+
+			if(!okay(i , j , flag1 , flag2))
+				continue ; 
+			if(!okay(i , k , flag3 , flag4)) 
+				continue ; 
+			int  d = solve2(i+1 ,(flag1|(j>A[i])) ,(flag2|(j<B[i])) , (flag3|(k>A[i])) , (flag4|(k<B[i])) ) ; 
+			ret = 1ll * (ret + d ) %mod ; 
+		}
+	}
+	return dp2[i][flag1][flag2][flag3][flag4] = ret ; 
+}
+
+
+int solve(int i , bool flag1 , bool flag2 , bool flag3 , bool flag4){
+
+	if( dp1[i][flag1][flag2][flag3][flag4] != -1)
+		return  dp1[i][flag1][flag2][flag3][flag4] ; 
+	if(i == n)
+		return 0 ;
+
+	int ret = 0 ; 
+
+	for(int j = 0 ;j < 10 ;j ++){
+		for(int k = 0 ; k < 10 ; k ++){
+
+			if(!okay(i , j , flag1 , flag2))
+				continue ; 
+			if(!okay(i , k , flag3 , flag4)) 
+				continue ; 
+
+			bool f1 = (flag1|(j>A[i]));
+			bool f2 = (flag2|(j<B[i])); 
+			bool f3 = (flag3|(k>A[i])); 
+			bool f4 = (flag4|(k<B[i])); 
+
+			int d = solve(i+1 ,f1 ,f2 ,f3,f4 ) ; 
+			int m = solve2(i+1 ,f1 , f2 , f3 , f4) ; 
+			
+			int add = (1ll * m * abs(j - k ) % mod ) ; 
+			ret = 1ll * (1ll * ret +1ll *  add + 1ll *  d ) %mod ; 
+		}
+	}
+	return dp1[i][flag1][flag2][flag3][flag4] =  ret ; 
+}
+
+int main(){
+	ios_base::sync_with_stdio(0) ; 
+	cin.tie(0) ; 
+	memset(dp1 , -1 , sizeof dp1) ; 
+	memset(dp2 , -1 , sizeof dp2) ;
+	//freopen("in.in"  ,"r" , stdin) ; 
+
+	cin >>  A >> B; 
+	n = (int) B.size() ; 
+
+	int diff = abs((int) A.size()  -  (int) B.size()) ; 
+	A = string(diff , '0') + A ; 
+
+	for(int i = 0 ;i < n; i++){
+		A[i]-='0'; 
+		B[i]-='0';
+	}
+	
+	cout<< solve(0 , 0 , 0 , 0 , 0 ) ;
+	return 0 ; 
+}
