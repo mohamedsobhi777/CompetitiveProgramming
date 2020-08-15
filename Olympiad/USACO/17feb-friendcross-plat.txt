@@ -1,0 +1,94 @@
+/*
+	
+	problem : USACO 17feb-friendcross-plat
+	Link : http://usaco.org/index.php?page=viewproblem2&cpid=722
+	handle : mohamedsobhi777
+
+	Solution : 	
+		Same as editorial
+
+
+*/
+
+
+#include<bits/stdc++.h>
+
+#include <ext/pb_ds/assoc_container.hpp>
+using namespace __gnu_pbds;
+
+
+#define I inline void 
+
+using ll = long long ; 
+using ld = long double ; 
+
+using namespace std ; 
+
+typedef tree<int,null_type,less<int>,rb_tree_tag,
+tree_order_statistics_node_update> indexed_set;
+
+
+const int N = 1e5 + 7 ; 
+
+int n, k ; 
+int cows1[N] , cows2[N] ; 
+int pos2[N] ; 
+int range[N] ; 
+
+indexed_set bit[N] ; 
+
+I add(int ix , int v ){
+	for(;ix < N ; ix+=ix&-ix){
+		bit[ix].insert(v) ;
+	}
+}
+
+ll upto(int x , int lo , int hi){
+	ll ret = 0 ; 
+	for(;x;x-=x&-x){
+		bool r = (bit[x].find(hi) != bit[x].end()) ; 
+		ret+= bit[x].order_of_key(hi) - bit[x].order_of_key(lo) + r; 
+	}
+	return ret ; 
+}
+
+ll upsum(int x){
+	ll ret = 0 ; 
+	for(;x;x-=x&-x){
+		ret+=bit[x].size() ; 
+	}
+	return ret ; 
+}
+
+int main(){	
+	ios_base::sync_with_stdio(0) ; 
+	cin.tie(0) ; 
+	freopen("friendcross.in" , "r" , stdin) ; 
+	freopen("friendcross.out" , "w" , stdout) ; 
+	//freopen("in.in" , "r" , stdin) ; 
+
+	cin >> n >> k ;
+	for(int i = 0 ;i < n ;i++){
+		cin >> cows1[i] ; 
+	}
+	for(int i = 0; i< n ;i++){
+		cin >> cows2[i] ; 
+		pos2[cows2[i]] = i ; 
+	}
+
+	for(int i = 0 ;i < n ;i++){
+		range[i] = 1 + pos2[cows1[i%n]] ; 
+	}
+
+	ll ans = 0 ; 
+
+	for(int i = n - 1 ; i >=0 ; i--){
+		ll all = upsum(range[i]) ; 
+		ans+= all - upto(range[i] , cows1[i] - k  , cows1[i] + k ) ; 
+		add(range[i] , cows1[i]) ; 
+	}
+
+	cout<< ans  ; 
+	return 0 ; 
+
+}
