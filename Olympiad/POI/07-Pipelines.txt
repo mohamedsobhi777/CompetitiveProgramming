@@ -1,0 +1,68 @@
+/*
+	Problem : POI 07-Pipelines
+	Link : 	https://szkopul.edu.pl/problemset/problem/zWn2E-v-nn-bozeXQrykmCgD/site/?key=statement
+	handle : mohamedsobhi777
+
+	Solution : 
+		same as editorial
+
+*/
+
+#include<bits/stdc++.h>
+
+#define I inline void 
+
+using ll = long long ; 
+using ld = long double ; 
+
+using namespace std ; 
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+
+ll ans ; 
+int n ; 
+
+vector<pair<int , int > > bhei1[N] , bhei2[N] ; 
+
+int main(){	
+	ios_base::sync_with_stdio(0) ; 
+	cin.tie(0) ; 
+	//freopen("in.in" , "r" , stdin) ;  
+
+	cin>> n ; 
+
+	for(int i = 0 ;i < n;i++){
+		ll x , y ; 
+		cin >> x >> y ; 
+		ans+= y - x ; 
+		bhei1[y].push_back({x , i }) ; 
+	}
+
+	for(int i = 0 ;i < n;i++){
+		ll x , y ; 
+		cin >> x >> y ; 
+		ans += x - y ; 
+		bhei2[y].push_back({x , i }) ; 
+	}
+
+	set<pair<int , int > > st ; 
+	vector<pair<int , int> > sol ; 
+	for(int i = 0 ;i < N ;i++){
+		for(auto u : bhei2[i]){
+			st.insert(u) ; 
+		}
+		sort(bhei1[i].begin() , bhei1[i].end()) ;
+		reverse(bhei1[i].begin() , bhei1[i].end())  ;  
+		for(auto u : bhei1[i]){
+			auto it = st.lower_bound(make_pair(u.first , -1) )  ;
+			sol.push_back({u.second + 1 , (*it).second + 1  });
+			st.erase(it) ;  
+		}
+	}
+
+	cout<< ans <<"\n" ; 
+	for(auto u : sol){
+		cout<< u.first <<" " << u.second <<"\n" ; 
+	}
+	return 0 ; 
+}
