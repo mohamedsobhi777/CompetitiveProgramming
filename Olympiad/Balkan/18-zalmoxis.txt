@@ -1,0 +1,81 @@
+/*
+	Problem : Balkan 18-zalmoxis
+	Link : https://oj.uz/problem/view/BOI18_zalmoxis
+
+	Solution : 
+		consider a binary tree with 30 at the top and each node's value equal its parent's value - 1
+		we want to take a subgraph of that tree so that our array is a subsequence of the labels on the nodes we take
+	
+*/
+
+#include<bits/stdc++.h>
+
+#define I inline void 
+
+using namespace std ; 
+
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 2e6 + 7 ; 
+
+// How interesting!
+
+int n , k ; 
+int a[N] ; 
+
+int used = 0 ; 
+
+vector<int> ans ; 
+
+int dfs(int x , int val){
+	if(a[x] > val){
+		ans.push_back(-val) ; 
+		used ++ ; 
+		return x ; 
+	}
+	if(a[x] == val){	
+		ans.push_back(val) ; 
+		return x + 1 ; 
+	}
+	int ret1 = dfs(x , val - 1) ; 
+	int ret2 = dfs(ret1 , val -1 ) ; 
+	return ret2 ;  
+}
+
+int main(){
+	ios_base::sync_with_stdio(0) ; 
+	cin.tie(0) ; 
+	//freopen("in.in", "r" , stdin) ;
+
+	cin >> n >> k ; 
+	a[n] = (1<<30) ;
+	for(int i = 0 ;i < n ; i++){
+		cin >> a[i] ; 
+	}
+
+	dfs(0 , 30 ) ; 
+
+	vector<int> ans2 = ans ; 
+
+	while(used < k){
+		ans = ans2 ; 
+		ans2.clear() ; 
+		for(auto u : ans){
+			ans2.push_back(u) ; 
+			while(used < k && ans2.back() < -1){
+				int x = ans2.back() ; 
+				ans2.pop_back() ; 
+				ans2.push_back(x+1) ; 
+				ans2.push_back(x+1) ; 
+				used ++ ; 
+			}
+		}
+	}
+
+
+	for(auto u : ans2){
+		cout<< abs(u) <<" " ; 
+	}
+	return 0 ; 
+}
