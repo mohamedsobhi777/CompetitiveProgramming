@@ -1,3 +1,9 @@
+/*
+	Problem : 19-shoes
+	Link : https://oj.uz/problem/view/IOI19_shoes
+	Solution : 
+		same as editorial's
+*/
 #include<bits/stdc++.h>
 //#include "shoes.h"
 
