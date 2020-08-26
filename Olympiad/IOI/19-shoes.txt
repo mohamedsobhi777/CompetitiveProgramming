@@ -1,0 +1,67 @@
+#include<bits/stdc++.h>
+//#include "shoes.h"
+
+#define I inline void 
+
+using namespace std ; 
+
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 2e5 + 7 , mod = 1e9 + 7 ;
+
+// How interesting!
+
+int n; 
+
+int bit[N] ;
+
+I add(int ix , int x){
+	ix++ ; 
+	for(;ix<N; ix+=ix&-ix){
+		bit[ix] += x  ; 
+	}
+}
+
+int upto(int ix){
+	int ret = 0 ; 
+	for(;ix;ix-=ix&-ix)
+		ret+=bit[ix] ;
+	return ret ; 
+}
+
+int get(int l , int r){
+	return upto(r+1) - upto(l) ; 
+}
+
+vector<int> viz(N , 0) ; 
+
+long long count_swaps(std::vector<int> s) {
+
+	int n = (int) s.size() ;
+	ll ret = 0 ; 
+
+	set<pair<int,int> > st ; 
+	for(int i = 0 ;i < n;i ++){
+		st.insert({s[i] , i}) ;
+	}
+
+	for(int i = 0 ;i < n;i++){
+		add(i , 1) ; 
+	}
+
+	for(int i = 0 ;i < n;i ++){	
+		if(viz[i])
+			continue ; 
+		auto it = st.lower_bound({ - s[i] , -1}) ;
+		int pos = (*it) .second ; 
+		ret+= get(i + 1, pos - 1) ;
+		if(s[i] > 0)ret++ ; 
+		add(pos , -1) ; 
+		viz[pos] = 1; 
+		st.erase(it) ; 
+		st.erase({s[i] , i}); 
+	}
+
+	return ret;
+}
