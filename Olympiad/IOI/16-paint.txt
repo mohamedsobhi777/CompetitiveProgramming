@@ -17,8 +17,8 @@
 	O(N*K)
 */
 
-include<bits/stdc++.h>
-//#include "paint.h"
+#include<bits/stdc++.h>
+#include "paint.h"
 
 
 //#pragma GCC optimize("trapv")
