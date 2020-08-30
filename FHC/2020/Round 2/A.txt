@@ -1,0 +1,104 @@
+#include<bits/stdc++.h>
+#pragma GCC optimize("trapv")
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 2e6 + 7 , mod = 1e9 + 7 ; 
+
+
+// How interesting!
+
+ll s[N] , x[N] , y[N] ; 
+
+ll as , bs , cs , ds ;
+ll ax , bx , cx , dx ; 
+ll ay , by , cy , dy ; 
+
+ll mul(ll x , ll y, ll Mod){
+	return 1ll * x * y % Mod ; 
+} 
+
+ll pls(ll x , ll y , ll Mod){
+	return (x + y) % Mod ; 
+}
+
+ll add(vector<ll> vec , ll Mod ){
+	ll ret = 0 ; 
+	for(auto u : vec){
+		ret = pls(ret , u , Mod) ;
+	}
+	return ret ; 
+}
+
+int main(){
+	ios_base::sync_with_stdio(0) ; 
+	cin.tie(0) 
+  
+	int t ; 
+	cin >> t; 
+	for(int tc = 1; tc <= t ;tc++){
+		ll n , k ; 
+		cin >> n >> k ; 	
+
+		for(int i = 0 ;i < k ;i ++){
+			cin>> s[i] ; 
+		}
+
+		cin >> as >> bs >> cs >> ds ; 
+
+		for(int i = k ; i < n ;i++){
+			s[i] = add({ mul(as , s[i-2] , ds) , mul(bs , s[i-1], ds) , cs  } , ds) ; 
+		}
+
+		for(int i = 0 ;i < k ;i++){
+			cin >> x[i] ; 
+		}
+
+		cin >> ax >> bx >> cx >> dx ; 
+
+		for(int i = k ; i  <  n; i++){
+			x[i] = add({ mul(ax , x[i-2] , dx) , mul(bx , x[i-1], dx) , cx  } , dx) ; 
+		}
+
+		for(int i = 0 ;i < k ;i++){
+			cin >> y[i] ; 
+		}
+
+		cin >> ay >> by >> cy >> dy ; 
+
+		for(int i = k ; i< n ;i++){
+			y[i] = add({ mul(ay , y[i-2] , dy) , mul(by , y[i-1], dy) , cy  } , dy) ; 
+		}
+		ll pos = 0 , neg = 0 ; 
+		ll spPos = 0 , spNeg = 0 ;
+
+		for(int i = 0 ;i < n ; i++){
+			if(s[i] < x[i] + y[i]){
+				spPos += x[i] + y[i] - s[i] ;
+				if(s[i] < x[i]) 	
+					neg += x[i] - s[i] ; 
+			}
+			if( s[i] > x[i]){
+				if(s[i] > x[i] + y[i])	
+					pos += s[i] - x[i] - y[i] ; 
+				spNeg += s[i] - x[i] ; 
+			}
+		}
+
+		ll ans = 0 ;
+
+		if(pos > spPos || neg > spNeg ){
+			ans = -1; 
+		}
+		else {
+			ans = max(pos , neg) ; 
+		}
+		cout << "Case #" << tc <<": " << ans <<"\n" ; 
+	}
+	return 0 ; 
+}
