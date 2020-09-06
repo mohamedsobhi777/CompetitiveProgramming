@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<ll, ll>>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const ll N = 1e5 + 7, mod = 1e9 + 7;
+int inf = -N ; 
+// How interesting!
+
+ll n , m; 
+ll f1 , f2 ;
+ll a , b; 
+ll A[N] ; 
+ll B[N] ;
+ll arr[N]; 
+
+ll add(ll x , ll y){
+	return  ((x + y) % mod + mod ) % mod ; 
+}
+
+ll mul(ll x , ll y){
+	return 1ll * x * y % mod; 
+}
+
+I make(int i){
+	ll m1 = 0 , m2 = 0 ; 
+	for( ; i <= n; i++ ){
+		A[i] = add(A[i] , A[i-1]) ; 
+		B[i] = add(B[i] , B[i-1]) ; 
+		ll tmp  = A[i] ;
+		A[i] = add( mul(b, A[i]) , mul(B[i] , a) ) ; 
+		B[i] = tmp ; 
+	}
+}
+
+ll FF[N] ;
+
+int F(int x){
+	if(x == 1)
+		return f1 ;
+	if(x == 2)
+		return f2 ; 
+	if(FF[x])
+		return FF[x] ; 
+	return FF[x] = add(mul(a , F(x-2)) , mul(b , F(x-1))) ;  
+}
+
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+	//freopen("in.in" , "r" , stdin) ; 
+
+	cin >> n >> m ; 
+	cin >> f1 >> f2 ; 
+	cin >> a >> b ; 
+
+	for(int i =1 ;i <= n;i++){
+		cin >> arr[i]; 
+	}
+	vector<int> v; 
+	for(int i = 0 ;i < m ;i++){
+		int l , r; 
+		cin >> l >> r; 
+		arr[l] = add(arr[l] , f1) ; 
+		l++ ;
+		if(l <= r){
+			arr[l] = add(arr[l] , f2) ; l ++ ; 
+		}
+		if(l <= r){
+			A[l] = add(A[l] , f2) ; 
+			B[l] = add(B[l] , f1) ; 
+
+			A[r+1] = add(A[r+1] , - F(r - l + 3) ) ; 
+			B[r+1] = add(B[r+1] , - F(r - l + 2) ) ; 			
+		}
+	}
+	make(3) ; 
+	for(int i =1 ;i <= n;i++){
+		cout<<add(A[i] , arr[i]) <<" " ; 
+	}
+	return 0;
+}
