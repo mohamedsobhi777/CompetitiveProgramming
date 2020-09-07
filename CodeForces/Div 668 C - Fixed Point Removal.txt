@@ -1,0 +1,122 @@
+#include<bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+#include <bits/stdc++.h>
+ 
+using namespace __gnu_pbds;
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 3e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n , m ; 
+int ned[N] ; 
+int a[N] ; 
+int req[N] ; 
+
+vector<int> bit[N] ; 
+
+int addbit[N + 10] ; 
+
+I add(int ix){
+	ix++ ; 
+	for(;ix<N;ix+=ix&-ix)
+		addbit[ix]++ ;
+}
+
+int upto(int x){
+	int ret = 0 ; 
+	for(;x;x-=x&-x)
+		ret+=addbit[x] ;
+	return ret ; 
+}
+
+int get(int l , int r){
+	l++ ; r++ ;
+	return upto(r) - upto(l -1) ; 
+}
+
+I addmst(int ix , int x){
+	for(;ix<N;ix+=ix&-ix)
+		bit[ix].push_back(x) ; 
+}
+
+int uptom(int x , int A , int B){
+	int ret = 0 ; 
+	for(;x;x-=x&-x)
+		ret+= upper_bound(bit[x].begin() , bit[x].end() , B) - lower_bound(bit[x].begin() , bit[x].end() , A) ; 
+	return ret ; 
+}
+
+int query(int l , int r , int A , int B){
+	return uptom(r , A , B) - uptom(l - 1 , A , B) ; 
+}
+
+I init(){
+	for(int i = 0 ;i < N ;i++)
+		sort(bit[i].begin() , bit[i].end()) ; 
+}
+
+int main(){
+	ios_base::sync_with_stdio(0) ; 
+	cin.tie(0) ;
+	//freopen("in.in" , "r" , stdin) ;
+
+	cin >> n >> m ;
+	for(int i = 1 ;i <= n;i++){
+		cin >> a[i] ; 
+	}
+	for(int i = 1 ;i <= n;i++){
+		if(a[i] <= i){
+			ned[i] = i - a[i] ; 
+		}
+		else{
+			ned[i] = inf ; 
+		}
+		req[i] = -1; 
+	}	
+	for(int i = 1 ; i <= n;i++){
+		int lo = 0 , hi = i - 1; 
+		while(lo<= hi){
+			int mid = (lo + hi) >> 1; 
+			int cnt = get(mid , N -1 ) ; 
+			if(cnt>= ned[i]){
+				req[i] = mid ;
+				lo = mid + 1 ; 
+			}
+			else
+				hi = mid - 1; 
+		}
+		if(req[i] >= 0)
+			add(req[i]) ; 
+	}
+	for(int i = 1 ;i <= n;i++){
+		addmst(i , req[i]) ;
+	}
+
+	init() ; 
+	for(int i = 0 ;i < m; i++){
+		int l , r ;
+		cin >> l >> r ; 
+		cout<< query(l + 1 , n - r , l , inf ) <<"\n" ; 
+	}	
+
+
+	return 0 ; 
+}
+
+
