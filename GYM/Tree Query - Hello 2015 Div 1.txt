@@ -1,0 +1,174 @@
+/*
+        Problem : Tree Query
+        Link : https://codeforces.com/gym/100570/problem/F
+        handle : Mohamed.Sobhy
+*/
+
+#include<bits/stdc++.h>
+
+#pragma GCC optimize("-Ofast")
+#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n, m ; 
+vector<int> ceno[N]; 
+vector<pll> adj[N] ;
+bool dead[N];
+int sz[N], prv[N] ;
+ll hei[N] ;
+int up[N][20] ; 
+int st[N] , en[N] ; 
+int tim ; 
+vector<ll> vec[N] , del[N] ; 
+
+I dfz(int x ,int p){
+        sz[x] = 1 ;
+        up[x][0] = p ;
+        st[x] = ++ tim ; 
+        if(x == p){
+                hei[x] = 0 ; 
+        }
+        for(int i = 1;i < 20 ;i++){
+                up[x][i] = up[up[x][i-1]][i-1] ;
+        }
+
+        for(auto u : adj[x]){
+                if(u.first == p || dead[u.first])
+                        continue ;
+                hei[u.first] = hei[x] + u.second ; 
+                dfz(u.first , x) ; 
+                sz[x] += sz[u.first] ; 
+        }
+        en[x] = ++ tim ; 
+}
+
+int troid(int x, int p, int siz){
+        for(auto u : adj[x]){
+                if(u.first == p || dead[u.first])
+                        continue ; 
+                if(sz[u.first] > siz / 2)
+                        return troid(u.first , x , siz) ; 
+        }
+        return x; 
+}
+
+I center(int x, int p = 0 ){
+        dfz(x , x) ;
+        int c = troid(x , x, sz[x] ) ; 
+        dead[c] = 1; 
+        if(p){
+                prv[c] = p ;
+                ceno[p].push_back(c) ; 
+                ceno[c].push_back(p) ;
+        }
+        for(auto u : adj[c]){
+                if(dead[u.first])
+                        continue ; 
+                center(u.first, c) ;
+        }
+}
+
+bool upper(int u , int v){
+        return st[u] <= st[v] && en[v] <= en[u] ; 
+}
+
+int lca(int u , int v){
+        if(upper(u , v))
+                return u ;
+        if(upper(v , u))
+                return v ; 
+        for(int i = 19 ; ~i ; -- i){
+                if(!upper(up[u][i],v))
+                        u = up[u][i] ; 
+        }
+        return up[u][0] ; 
+}
+
+ll dist(int u , int v){
+        int lc = lca(u , v) ; 
+        return hei[u] + hei[v] - 2ll * hei[lc] ;
+}
+
+I paint(int x){
+        int tmp = x; 
+        while( x != -1){
+                vec[x].push_back(dist(tmp , x)) ; 
+                if(~prv[x])
+                        del[x].push_back(dist(tmp , prv[x])) ;
+                x = prv[x] ; 
+        }
+}
+
+int query(int x , ll y ){
+        int tmp = x ; 
+        ll ret = 0 ; 
+        int ex = 0 ;
+        ll ldst = 0 ; 
+        while(x!= -1){
+                ll dst = dist(tmp , x) ;
+                ret += upper_bound(vec[x].begin() , vec[x].end() , y - dst) -vec[x].begin() ;
+                
+                if(ex){
+                        ret-= upper_bound(del[ex].begin() , del[ex].end() , y - dst) - del[ex].begin() ; 
+                }
+
+                ex = x ; 
+                ldst = dst;  
+                x = prv[x] ;
+        }
+        return ret ;
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ; 
+        cin.tie(0) ;
+        //freopen("in.in" , "r" , stdin) ; 
+        cin >> n >> m; 
+        memset(prv , -1 , sizeof prv) ; 
+        for(int i = 0 ;i < n - 1;i++){
+                ll u , v , w ; 
+                cin >> u >> v >> w; 
+                adj[u].push_back({v , w}) ; 
+                adj[v].push_back({u , w}) ; 
+        }
+
+        dfz(1 , 1) ;
+        center(1) ; 
+        tim = 0 ; 
+        memset(up , 0 , sizeof up) ; 
+        memset(dead , 0 , sizeof dead) ; 
+        dfz(1 , 1) ; 
+
+        for(int i =1 ; i <= n;i++){
+                paint(i) ;
+        }
+
+        for(int i =1 ;i<= n;i++){
+                sort(vec[i].begin() , vec[i].end()) ; 
+                sort(del[i].begin() , del[i].end()) ;
+        }
+
+        for(int i = 0 ;i < m;i++){
+                ll u , v ;
+                cin >> u >> v; 
+                cout<< query(u , v) <<"\n" ; 
+        }
+        return 0 ; 
+}
