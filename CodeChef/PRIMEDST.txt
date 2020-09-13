@@ -1,0 +1,135 @@
+#include<bits/stdc++.h>
+
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n, m ; 
+vector<int> adj[N]; 
+bool dead[N];
+int sz[N] ;
+vector<int> prms ; 
+bool p[N] ;
+ll ans ; 
+
+I dfz(int x ,int p){
+        sz[x] = 1 ;
+
+        for(auto u : adj[x]){
+                if(u == p || dead[u])
+                        continue ;
+                dfz(u , x) ; 
+                sz[x] += sz[u] ; 
+        }
+}
+
+int troid(int x, int p, int siz){
+        for(auto u : adj[x]){
+                if(u == p || dead[u])
+                        continue ; 
+                if(sz[u] > siz / 2)
+                        return troid(u , x , siz) ; 
+        }
+        return x; 
+}
+
+int cnt[N] ; 
+int pr ; 
+
+vector<pair<int,int>> his ; 
+
+int dfx(int x , int p , int h){
+        his.push_back({x , h}) ; 
+        for(auto u : adj[x]){
+                if(u == p || dead[u])
+                        continue ; 
+                dfx(u , x , h + 1) ; 
+        }
+        pr = max(pr , h) ;
+}
+
+
+ll solve(int x){
+
+        memset(cnt , 0 , sizeof cnt) ;
+        cnt[0] =1 ; 
+        pr = 0 ; 
+        for(auto j : adj[x]){
+                if(dead[j]){
+                        continue ;
+                }
+                dfx(j , x, 1) ; 
+                for(auto u : prms){
+                        if(u > pr * 2)
+                                break ; 
+                        for(auto v : his){ 
+                                if(u >= v.second)
+                                        ans += cnt[u - v.second] ; 
+                        }  
+                }
+
+                for(auto v : his){
+                        cnt[v.second] ++ ; 
+                }
+                his.clear() ; 
+        }
+}
+
+I center(int x){
+        dfz(x , x) ;
+        int c = troid(x , x, sz[x] ) ; 
+        dead[c] = 1; 
+        solve(c) ;
+        for(auto u : adj[c]){
+                if(dead[u])
+                        continue ; 
+                center(u) ;
+        }
+}
+
+I sieve(){
+        p[1] = 1; 
+        for(int i =2 ;i <=n ;i++){
+                if(p[i])
+                        continue  ;
+                prms.push_back(i) ; 
+                for(int j = i + i ;j <=n ;j+=i){
+                        p[j] = 1  ; 
+                }
+        }
+}
+
+int main(){
+        //freopen("in.in" , "r" , stdin) ; 
+        cin >> n; 
+        sieve() ;
+        for(int i = 0 ;i < n - 1;i++){
+                int u , v ; 
+                cin >> u >> v; 
+                adj[u].push_back(v) ; 
+                adj[v].push_back(u) ; 
+        }
+        dfz(1 , 1) ;
+        center(1) ; 
+        ll all = 1ll * n * (n - 1) / 2ll ;
+        cout<< fixed<<setprecision(6) << (double) ans / all  ;
+        return 0 ; 
+}
