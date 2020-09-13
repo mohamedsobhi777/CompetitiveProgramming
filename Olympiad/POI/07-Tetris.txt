@@ -1,0 +1,70 @@
+/*
+        Problem Name : POI 07-Tetris
+        Problem Link : https://szkopul.edu.pl/problemset/problem/U6ajLqOdhbPOfK02zqN8MmZf/site/?key=statement
+        handle : mohamedsobhi777
+        Solution : 
+                https://github.com/mostafa-saad/MyCompetitiveProgramming/blob/master/Olympiad/POI/POI-07-Tetris.txt
+*/
+
+#include<bits/stdc++.h>
+
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n; 
+bool vis[50005] ; 
+int a[N] ;
+vector<int> st ;
+vector<int> ans ;
+
+int main(){
+        scanf("%d" , &n) ; 
+        for(int i = 0 ;i < n * 2;i++){
+                scanf("%d" , &a[i]) ; 
+        }
+
+        for(int i = 0 ; i < 2 * n ; ++ i){
+                if(vis[a[i]]){
+                        vector<int> aux ; 
+                        while(st.back()!= a[i]){
+                                ans.push_back(st.size()) ; 
+                                aux.push_back(st.back())  ;
+                                st.pop_back() ; 
+                        }
+                        st.pop_back() ; 
+                        while(aux.size()){
+                                st.push_back(aux.back()) ; 
+                                aux.pop_back() ;
+                        }
+                }else{
+                        vis[a[i]] = 1; 
+                        st.push_back(a[i]) ; 
+                }
+        }
+
+        printf("%d\n" , (int) ans.size()) ; 
+        for(auto u : ans){
+                printf("%d\n" , u) ; 
+        }
+        
+        return 0 ; 
+}
