@@ -2,6 +2,11 @@
         Problem : Tree Query
         Link : https://codeforces.com/gym/100570/problem/F
         handle : Mohamed.Sobhy
+        Solution : 
+                Using centroid decomposition we can keep a sorted array at each node (centroid) containing the lengths of paths to 
+                that centroid, now we can answer the queries by iterating over the centroids and using binary search.
+                
+        O(N* log_2(N)^2)
 */
 
 #include<bits/stdc++.h>
