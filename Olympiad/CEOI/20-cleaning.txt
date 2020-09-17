@@ -1,0 +1,187 @@
+#include<bits/stdc++.h>
+
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 2e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n , k ; 
+int leafs ; 
+vector<int> adj[N] , adx[N]; 
+int prv[N] , eng[N];
+int st[N] , en[N] ; 
+int hei[N], pref[N] ; 
+int up[N][20], T;
+
+int dfs(int x, int p){
+        int chd = 0 ; 
+        st[x] = ++ T ; 
+        up[x][0] = p ; 
+        for(int i =1 ;i < 20 ;i++){
+                up[x][i] = up[up[x][i-1]][i-1] ; 
+        }
+        hei[x] = hei[p] + 1; 
+        for(auto u : adj[x]){
+                if(u == p){
+                        continue ; 
+                }
+                prv[u] = x ;
+                eng[x] += dfs(u , x) ; 
+                chd = 1 ;
+        }
+        eng[x] += !chd ;
+        eng[x]&=1 ;
+        en[x] = ++ T ; 
+        return eng[x] ; 
+}
+
+bool upper(int u , int v){
+        return (st[u] <= st[v] && en[v] <= en[u]) ; 
+}
+
+int lca(int u , int v){
+        if(upper(u , v))
+                return u ; 
+        if(upper(v , u))
+                return v ; 
+        for(int i = 19 ; ~ i ;-- i){
+                if(!upper(up[u][i] , v)){
+                        u = up[u][i] ;
+                }         
+        }
+        return up[u][0] ; 
+}
+
+int ans = 0 ;
+int dop = 0 ; 
+int imp[N]; 
+
+int solve(int x , int p ){
+        int ret = imp[x] ;
+        for(auto u : adx[x]){
+                if(u == p)
+                        continue ; 
+                int len = hei[u] - hei[x] ;
+                int od = pref[u] - pref[x] ; 
+                int cnt = solve(u , x) ;
+                if(cnt&1){
+                        dop += len - 2 * od ; 
+                }
+                ret += cnt ; 
+        }
+        return ret ; 
+}
+
+I make_pref(int x, int p){
+        pref[x] = pref[p] + eng[x] ; 
+        for(auto u : adj[x]){
+                if(u == p)
+                        continue ; 
+                make_pref(u , x) ; 
+        }
+}
+
+bool cmp(int u, int v){
+        return st[u] < st[v] ;
+}
+
+I build(vector<int> &vec){
+        for(auto u : vec){
+                imp[u] ^= 1; 
+        }
+        vec.push_back(1) ;
+        int sz = (int) vec.size() ; 
+        sort(vec.begin() , vec.end() , cmp) ;
+        for(int i = 1; i < sz ;i ++){
+                vec.push_back(lca(vec[i] , vec[i-1])) ; 
+        }
+        sort(vec.begin() , vec.end() , cmp) ; 
+        for(auto u : vec)
+                adx[u].clear() ;
+        vector<int> aux = {vec[0]} ;    
+        vec.erase( unique(vec.begin() , vec.end()) , vec.end()) ;
+
+        for(int i = 1;i < (int) vec.size() ;i ++){
+                while(aux.size() >= 2 && !upper(aux.back() , vec[i]) ){
+                        adx[ aux[aux.size() - 2] ].push_back(aux.back()) ; 
+                        aux.pop_back() ; 
+                }
+                aux.push_back(vec[i]) ;
+        }
+        while(aux.size() > 1){
+                adx[ aux[aux.size() - 2] ].push_back(aux.back()) ; 
+                aux.pop_back() ;  
+        }
+        solve(aux[0] , aux[0]) ;
+        for(auto u : vec){
+                adx[u].clear() ;
+                imp[u] = 0 ;  
+        }
+}
+
+int vis[N] ;
+int fot = 0 ; 
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" , stdin) ; 
+
+        cin >> n >> k ; 
+        for(int i = 0 ;i < n - 1;i ++){
+                int u , v ; 
+                cin >> u >> v ;
+                adj[u].push_back(v) ; 
+                adj[v].push_back(u) ;
+        }
+        dfs(1 , 1) ; 
+        make_pref(1 , 1) ;
+        ans = accumulate(eng + 2 , eng + n + 1 , 0) ; 
+        for(int i = 1; i<= n;i++)
+                leafs+= (adj[i].size() == 1) ;
+        while(k -- ){   
+                fot++ ;
+                int t ; 
+                cin >> t; 
+                vector<int> vec ; 
+                int nleafs = t + leafs;
+                vector<int> del ;
+                for(int i = 0 ;i < t;i ++){
+                        int x ; 
+                        cin >> x ;
+                        vec.push_back(x) ;
+                        if(adj[x].size() == 1 && vis[x] != fot){
+                                nleafs -- ; 
+                        }else{
+                                del.push_back(x) ;
+                        }
+                        vis[x] = fot ; 
+                }
+                if(nleafs &1){
+                        cout<<"-1\n" ; 
+                }else{ 
+                        dop = 0 ; 
+                        build(del) ;
+                        cout<< n + vec.size() - 1 + (n - 1 - (ans + dop) )<<"\n" ;              
+                }
+        }
+
+        return 0 ; 
+}
