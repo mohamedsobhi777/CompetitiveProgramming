@@ -1,0 +1,82 @@
+#include<bits/stdc++.h>
+
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int k ; 
+double n , m  ;
+
+vector<pair<float ,pii> > ed ; 
+vector<pii> v ; 
+
+int fat[5005] ; 
+
+int fin(int x){
+        return fat[x] == x ? x : fin(fat[x]) ;
+}
+
+I link(int u , int v){
+        u = fin(u) ; 
+        v = fin(v) ; 
+        if(u != v)
+                fat[u] = v ; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" , stdin) ; 
+        cin >> n >> m >> k ;
+        for(int i = 0 ;i < 5005; i++)
+                fat[i] = i ;
+        double mx1 = min(n , m) ; 
+        for(int i = 0 ;i < k ;i++){
+                int x , y ; 
+                cin >> x >> y ; 
+                v.push_back({x , y}) ; 
+                ed.push_back({y , {i , k}}) ; 
+                ed.push_back({m - y , {i , k + 1}}) ; 
+        }
+        if(k > 2000)
+            mx1 = min(n / 2, m / 2) ; 
+        for(int i = 0 ;i < k ;i++){
+                for(int j = i + 1; j < k ;j ++){
+                        int dx = v[i].first - v[j].first ; 
+                        int dy = v[i].second - v[j].second ;
+                        double dst = hypot(dx , dy) ; 
+                        if(dst<= mx1 || k <= 1000)
+                            ed.push_back({dst , {i , j}}) ; 
+                }
+        }
+        sort(ed.begin() , ed.end()) ;
+        double ans = 0 ; 
+        for(auto u : ed){
+                link(u.second.first , u.second.second) ;
+
+                if(fin(k) == fin(k+1)){
+                        ans = u.first / 2 ; 
+                        break ;
+                }
+        }
+        cout<< fixed <<setprecision(10) << ans ; 
+        return 0 ; 
+}
