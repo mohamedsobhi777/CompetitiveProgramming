@@ -1,0 +1,97 @@
+/*
+        Problem : IOI 13-cave
+        Link : https://oj.uz/problem/view/IOI13_cave
+
+        Solution : 
+                https://ivaniscoding.github.io/posts/divideandconquer2/
+*/
+
+#include "cave.h"
+#include <vector>
+#include<bits/stdc++.h>
+
+using namespace std ; 
+
+int n ; 
+int *pos, *loc; 
+bool vis[10000] ; 
+int it, col ;
+void flip(){
+        for(int i = 0 ;i < n ;i++)
+                pos[i]^=1 ; 
+}
+
+vector<int> btns ; 
+
+void init(int N){
+        n = N ; 
+        pos = new int[N] ;
+        loc = new int[N] ; 
+        memset(pos , 0 , sizeof(int) * N) ; 
+        memset(loc , 0 , sizeof(int) * N) ;
+        for(int i = 0 ;i < N ;i++)
+                btns.push_back(i) ;
+}
+
+int go(vector<int> vec, vector<int> vec2, int door){
+        int ret = n ; 
+        int *qu = pos ; 
+        for(auto u : vec){
+                qu[u] = col ;
+        }
+        for(auto u : vec2){
+                qu[u] = !col; 
+        }
+        ret = tryCombination(qu) ;
+
+        return ret != door ; 
+}
+
+void solve( vector<int> swi , int door){
+        if(swi . size() == 1){
+                pos[swi[0]] = 0 ; 
+                if(tryCombination(pos) == door){
+                        pos[swi[0]] ^= 1 ; 
+                }                        
+                vis[swi[0]] = 1 ; 
+
+                loc[ swi[0] ] = it ; 
+                for(int i = 0 ;i < (int) btns.size() ; ++ i){
+                        if(btns[i] == swi[0]){
+                                btns.erase(btns.begin() + i) ;
+                                break ; 
+                        }
+                }
+                it++ ;
+                return ; 
+        }
+        vector<int> LHS , RHS ; 
+        int sz = (int) swi.size() ; 
+        for(int i = 0 ;i < sz ;i ++){
+                if(i < sz / 2)
+                        LHS.push_back(swi[i]) ; 
+                else
+                        RHS.push_back(swi[i]) ; 
+        }
+
+        if(go(LHS, RHS , door)){
+                solve(LHS, door) ; 
+        }else{
+                solve(RHS, door) ; 
+        }
+
+}
+
+void exploreCave(int N) {
+        init(N); 
+        for(int i = 0 ;i < n;i++){
+                for(int j = 0 ;j < n ;j ++){
+                        if(!vis[j])
+                                pos[j] = 0 ; 
+                }
+                col = (tryCombination(pos) == i) ;
+                solve(btns , i) ;         
+        }
+
+        answer(pos , loc) ; 
+}
