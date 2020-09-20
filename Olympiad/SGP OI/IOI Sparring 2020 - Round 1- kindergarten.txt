@@ -1,0 +1,117 @@
+#include "kindergarten.h"
+#include <vector>
+#include<bits/stdc++.h> 
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 3e5 + 7 ; 
+const int inf = -1e5 - 5 ;
+ll ans[N] ; 
+int n , k ; 
+
+typedef long long LL;
+
+#define MAXLC 200000
+#define INF (1LL<<60)
+
+inline LL f(LL m, LL b, int x) {
+        return m * x + b;
+}
+
+struct lc_node {
+        LL m = 0, b = INF;
+        lc_node *l = nullptr, *r = nullptr;
+
+        ~lc_node() { delete l; delete r; }
+
+        void add_line(LL nm, LL nb, int lo=-MAXLC, int hi=MAXLC) {
+                int mid = (lo + hi) / 2;
+                bool bl = f(nm, nb, lo) < f(m, b, lo);
+                bool bm = f(nm, nb, mid) < f(m, b, mid);
+                bool bh = f(nm, nb, hi) < f(m, b, hi);
+                if (bm) {
+                        swap(nm, m);
+                        swap(nb, b);
+                }
+                if (lo == hi || nb == INF)
+                        return;
+                else if (bl != bm) {
+                        if (!l) l = new lc_node;
+                        l->add_line(nm, nb, lo, mid - 1);
+                }
+                else if (bh != bm) {
+                        if (!r) r = new lc_node;
+                        r->add_line(nm, nb, mid + 1, hi);
+                }
+        }
+
+        LL get(int x, int lo=-MAXLC, int hi=MAXLC) {
+                int mid = (lo + hi) / 2;
+                LL ret = f(m, b, x);
+                if (l && x < mid)
+                        ret = min(ret, l->get(x, lo, mid - 1));
+                if (r && x > mid)
+                        ret = min(ret, r->get(x, mid + 1, hi));
+                return ret;
+        }
+
+        void clear() {
+                delete l; delete r;
+                m = 0, b = INF, l = nullptr, r = nullptr;
+        }
+
+} tree[4*N];
+
+void update(int node , int L , int R , int ix , pair<ll , ll > val ){
+        tree[node].add_line(val.first , val.second) ; 
+        if(L == R){
+                return ; 
+        }
+        int mid = (L + R) >> 1; 
+        if(ix<=mid)
+                update(node*2+1 , L , mid , ix , val) ; 
+        else 
+                update(node*2+2 , mid+ 1, R , ix , val) ; 
+}
+
+ll query(int node , int L , int R, int l , int r , ll x){
+        if(l > R || r < L)
+                return 1e18 ; 
+        if(L>=l && R<=r)
+                return tree[node].get(x) ;
+        int mid = (L + R) >> 1; 
+        ll s1 = query(node*2+1 , L , mid , l , r , x) ; 
+        ll s2 = query(node*2+2 , mid+1 , R , l, r , x) ;
+        return min(s1 , s2) ;
+}
+
+void init(int sz, std::vector<int> T, std::vector<int> D, std::vector<int> H) {
+        for(auto &u : D) -- u ; 
+        for(auto &u : H) -- u ; 
+        vector<ll> pref(sz , 0) ; 
+        pref[0] = T[0] ; 
+        for(int i = 1 ;i < sz ; i ++ ){
+                pref[i] = pref[i -1 ] + T[i] ; 
+        }
+        update(0 , 1 , N , 1 , {0 , 0}) ;
+        ans[0] = -1e12 ; 
+        for(int i = 1 ; i < sz; i ++ ){
+                ll now = 1ll * (i+1) * T[D[i]] + pref[i] - 1ll * (i+1) * T[i] - query(0 , 1, N , max(0 , H[i] + 1) + 1 , D[i] + 1 , T[i]) ;  
+                update(0 , 1 , N , i + 1, {- i , pref[i-1] - ans[i-1]}) ; 
+                ans[i] = now;
+        }
+}
+
+long long combined_ability(int K) {
+        K -- ; 
+        return ans[K] ; 
+}
