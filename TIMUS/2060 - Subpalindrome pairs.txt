@@ -1,0 +1,117 @@
+#include<bits/stdc++.h>
+
+#pragma GCC optimize("-Ofast")
+#pragma GCC optimize("trapv")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define pii pair<int,int> 
+#define pll Pair<ll,ll>
+#define I inline void
+#define S struct
+#define vi vector<int> 
+#define vii vector<pii>
+
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e6 + 7 ; 
+
+// How interesting!
+
+int n ; 
+int num , suf ; 
+
+string s; 
+
+struct node{
+        int nxt[26] ; 
+        int num, len, sufLink ; 
+        int lazy ; 
+} eet[N]; 
+
+bool addL(int pos ){
+
+        int let = s[pos] - 'a' ; 
+        int cur = suf, curl = 0 ; 
+
+        while(1){
+                curl = eet[cur].len ; 
+                if( pos - 1 - curl >= 0 && s[pos -1 - curl] == s[pos]){
+                        break ; 
+                }
+
+                cur = eet[cur].sufLink ; 
+        }
+
+        if(eet[cur].nxt[let]){
+                suf = eet[cur].nxt[let] ; 
+                eet[suf].lazy ++ ;
+                return false ;
+        }
+
+        suf = ++ num ;
+        eet[num].len = eet[cur].len + 2 ; 
+        eet[cur].nxt[let] = num ;
+        eet[num].lazy ++;  
+
+        if(eet[num].len == 1){
+                eet[num].sufLink = 2 ;
+                eet[num].num = 1; 
+                return 1 ; 
+        }
+
+        while(1){
+                cur = eet[cur].sufLink ; 
+                curl = eet[cur].len ;
+                if( pos - 1 - curl >= 0 && s[pos -1 - curl] == s[pos]){
+                        eet[num].sufLink = eet[cur].nxt[let] ;
+                        break ; 
+                }
+        }
+
+
+        eet[num].num = 1 + eet[eet[num].sufLink].num ; 
+
+        return 1 ; 
+}
+
+I init(){
+        suf = num = 2 ; 
+        eet[1].len = - 1, eet[2].len = 0 ;
+        eet[1].sufLink = eet[2].sufLink = 1; 
+}
+
+int viz[N]; 
+
+int arr1[N] , arr2[N] ; 
+
+int main(){
+        ios_base::sync_with_stdio(0) ; 
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" ,stdin) ; 
+        cin >> s; 
+        n = (int) s.size() ;
+        init() ; 
+
+        for(int i = 0 ;i < n;i ++ ){
+                addL(i) ;
+                arr1[i] = eet[suf].num ; 
+        }
+
+        reverse(s.begin() , s.end()) ;
+        init() ; 
+        for(int i = 0 ;i < n;i ++ ){
+                addL(i) ; 
+                arr2[n - 1 - i] = eet[suf].num ; 
+        }
+
+        ll ans = 0 ; 
+        for(int i = 1 ;i < n;i ++){
+                ans += 1ll *  arr1[i - 1] * arr2[i] ; 
+        }
+        cout<< ans; 
+        return 0 ; 
+}
