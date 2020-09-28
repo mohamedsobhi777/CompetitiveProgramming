@@ -1,0 +1,82 @@
+/*
+        Problem : CEOI 18-Cloud
+        Link : https://csacademy.com/contest/ceoi-2018-day-1/task/cloud-computing/
+        Handle : Sobhy
+        Solution : 
+                Same as editorial's
+
+*/
+
+#include<bits/stdc++.h>
+
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 2000 + 7 , mod = 1e9 + 7 , mxc = 100005; 
+const int inf = N ; 
+// How interesting!
+
+int n, m; 
+
+vector< pair< ll , pair<ll,ll> > > ve ;  
+
+ll dp[2][200005] ; 
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" , stdin) ; 
+
+        cin >> n ; 
+        for(int i = 0 ;i < n; i++){
+                ll c , f , v ; 
+                cin >> c >> f >> v ; 
+                ve.push_back({-f , {-c , -v}}) ; 
+        }
+
+        cin >> m; 
+
+        for(int i = 0 ;i < m; i++){
+                ll c , f , v ; 
+                cin >> c >> f >> v ; 
+                ve.push_back({-f , {c , v} }) ;
+        }
+
+        sort(ve.begin() , ve.end()) ;
+        for(auto &u : ve)
+                u.second.first*=-1 ;
+        for(int i = 1 ; i < mxc ; i++)
+                dp[0][i] = dp[1][i] = -1e15 ; 
+        
+        for(int i = 0 ;i < n + m; i++ ){
+
+                for(int j = mxc - 1 ; ~j ;j --){
+                        if(j + ve[i].second.first >= 0){
+                                dp[1][j + ve[i].second.first] = max(dp[1][j + 
+                                        ve[i].second.first] , dp[0][j] + ve[i].second.second) ;
+                        }
+                }
+                for(int j = 0 ;j < mxc ;j ++)
+                        dp[0][j] = dp[1][j] ; 
+        }
+        ll ans = 0 ; 
+        for(int i = 0 ; i < mxc ;i ++)
+                ans = max(ans , dp[1][i]) ; 
+        cout<< ans ; 
+        return 0 ; 
+}
