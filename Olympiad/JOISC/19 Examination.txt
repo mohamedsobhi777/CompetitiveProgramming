@@ -1,0 +1,118 @@
+#include<bits/stdc++.h>
+#include<ext/pb_ds/assoc_container.hpp> 
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using namespace __gnu_pbds; 
+
+typedef tree<pii, null_type , less<pii> , rb_tree_tag , tree_order_statistics_node_update> indexed_set ; 
+
+using ll = long long ; 
+using ld = long double ; 
+
+
+const int N = 2e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n , k; 
+vector< pair<pii , pii> > v ; 
+int ans[N] ; 
+int A[N] , B[N] , S[N] ; 
+int qA[N] , qB[N] , qS[N] ; 
+
+vector<int> v1 , v2 ; 
+
+void cmp(vector<int> &x){
+        sort(x.begin() , x.end()) ; 
+        x.erase(unique(x.begin() , x.end()) , x.end()) ; 
+}
+
+indexed_set mst[N] ; 
+int t = 0 ; 
+
+void add(int x , int y){
+        for(;x < N ; x += x&-x)
+                mst[x].insert({y , ++ t}) ; 
+}
+
+int upto(int x , int y){
+        int ret = 0 ; 
+        for(;x;x-=x&-x){
+                int j = mst[x].order_of_key({y , -1}) ; 
+                ret += (int) mst[x].size() - j ; 
+        }
+        return ret ; 
+}
+
+int get(int l ,int r , int x){
+        return upto(r , x) - upto(l  - 1 ,x) ; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" , stdin) ; 
+        cin >> n >> k ; 
+        for(int i = 0 ;i < n;i ++ ){
+                cin >> A[i] >> B[i] ; 
+                S[i] = A[i] + B[i] ; 
+                v1.push_back(A[i]) ; 
+                v2.push_back(B[i]) ; 
+        }
+        for(int i = 0 ;i < k ;i ++){
+                cin >> qA[i] >> qB[i] >> qS[i] ; 
+                v1.push_back(qA[i]) ; 
+                v2.push_back(qB[i]) ; 
+        }
+
+        cmp(v1) ; 
+        cmp(v2) ; 
+        for(int i = 0 ;i < n;i ++){
+                A[i] = lower_bound(v1.begin() , v1.end() , A[i]) - v1.begin() + 1 ; 
+                B[i] = lower_bound(v2.begin() , v2.end() , B[i]) - v2.begin() + 1 ; 
+        }
+
+        for(int i = 0 ;i < k ; ++ i){
+                qA[i] = lower_bound(v1.begin() , v1.end() , qA[i]) - v1.begin() + 1 ; 
+                qB[i] = lower_bound(v2.begin() , v2.end() , qB[i]) - v2.begin() + 1 ;         
+        }
+
+        for(int i = 0 ;i < n;i ++ ){
+                v.push_back({{-S[i] , - 1 } , {A[i] , B[i]} }) ; 
+        }
+
+        for(int i = 0 ;i < k;  ++ i){
+                v.push_back({{-qS[i] , i } , {qA[i] , qB[i]} }) ; 
+        }
+
+        sort(v.begin() , v.end()) ; 
+
+        vector< pii> aux ; 
+        for(int i = 0 ;i < n + k ; ++ i){
+                if(v[i].first.second < 0){
+                        assert(v[i].second.first && v[i].second.second) ; 
+                        add(v[i].second.first , v[i].second.second) ; 
+                }
+                else{
+                        int ret = get(v[i].second.first , N - 1 , v[i].second.second) ; 
+                        
+                        ans[v[i].first.second] = ret ; 
+                }
+
+        }
+        for(int i = 0 ;i < k ; ++ i)
+                cout<< ans[i] <<"\n" ; 
+        return 0 ; 
+}
