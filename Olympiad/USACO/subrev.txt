@@ -1,0 +1,80 @@
+#include<bits/stdc++.h>
+
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pi pair<int,int>
+#define pll pair<ll,ll>
+#define f first
+#define s second
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 50 + 3 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n ; 
+
+int a[N] ; 
+int dp[N][N][N][N] ; 
+
+int solve(int l , int r , int x , int y){
+        if(x > y)
+                return -10000 ; 
+        if(l > r)
+                return 0 ;
+
+        if(l == r)
+                return a[l] >= x && a[l] <= y ; 
+        if(~dp[l][r][x][y])
+                return dp[l][r][x][y] ; 
+        int ret = 0 ;  
+        if(a[l] >= x && a[r] <= y)
+                ret = max(ret , solve(l + 1 , r - 1, a[l] , a[r]) + 2) ; 
+
+        if(a[l] <= y && a[r] >= x)
+                ret = max(ret , solve(l + 1 , r - 1, a[r] , a[l]) + 2) ; 
+
+        ret = max(ret , solve(l+1 , r , x , y)) ; 
+        ret = max(ret , solve(l , r - 1, x , y)) ; 
+
+        if(a[l] >= x)
+                ret = max(ret , 1 + solve(l+1 , r , a[l] , y) ) ;
+
+        if(a[r] <= y)
+                ret = max(ret , 1 + solve(l , r - 1, x , a[r])) ; 
+
+        if(a[r] >= x)
+                ret = max(ret , 1 + solve(l + 1 , r - 1, a[r] , y ) ) ; 
+
+        if(a[l] <= y)
+                ret = max(ret , 1 + solve(l + 1 , r - 1, x , a[l]) ) ; 
+
+        return dp[l][r][x][y] = ret ; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        memset(dp , -1 , sizeof dp) ; 
+
+        freopen("subrev.in" , "r" , stdin) ; 
+        freopen("subrev.out" , "w" , stdout) ;
+
+        cin >> n ; 
+        for(int i = 0 ;i < n; ++ i)
+                cin >> a[i] ; 
+        cout<< solve(0 , n - 1, 0 , 50) ; 
+        return 0 ; 
+}
