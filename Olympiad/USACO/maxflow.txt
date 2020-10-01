@@ -1,0 +1,87 @@
+#include<bits/stdc++.h>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n ,k; 
+vector<int> adj[N] ; 
+int up[N][20] ; 
+int st[N] , en[N] , T ; 
+int prv[N], m[N] ; 
+int ans ; 
+
+void dfs(int x, int p){
+        st[x] = ++ T ;
+        up[x][0] = p ; 
+        for(int i = 1 ; i< 20 ; ++ i)
+                up[x][i] = up[up[x][i-1]][i-1] ; 
+        prv[x] = p ; 
+        for(auto u : adj[x]){
+                if(u == p)
+                        continue ;
+                dfs(u , x) ;
+        }
+        en[x] = ++ T ;
+}
+
+bool upper(int u, int v){
+        return st[v] >= st[u] && en[v] <= en[u] ; 
+}
+int lca(int u , int v){
+        if(upper(u , v))
+                return u ; 
+        if(upper(v , u))
+                return v ; 
+        for(int i = 19 ; ~ i ; -- i)
+                if(!upper(up[u][i] , v))
+                        u = up[u][i] ; 
+        return up[u][0] ; 
+}
+
+int dfx(int x, int p){
+        int ret = m[x] ; 
+
+        for(auto u : adj[x]){
+                if(u == p)
+                        continue ;
+                ret += dfx(u , x) ;
+        }
+        ans = max(ans, ret) ; 
+        return ret ;
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        freopen("maxflow.in" , "r" , stdin) ; 
+        freopen("maxflow.out" , "w" , stdout) ;
+        cin >> n >> k ; 
+
+        for(int i = 0 ;i < n - 1; ++ i){
+                int u , v ; 
+                cin >> u >> v;  
+                adj[u].push_back(v) ; 
+                adj[v].push_back(u) ;
+        }
+
+        dfs(1 , 1) ;
+
+        for(int i = 0 ;i < k ; ++ i){
+                int u , v; 
+                cin >> u >> v;  
+                int x = lca(u , v) ; 
+                m[u] ++ ; 
+                m[v] ++ ; 
+                m[x] -- ; 
+                if(prv[x]) m[prv[x]]-- ; 
+        }
+
+        dfx(1 , 1) ;
+        cout<< ans; 
+        return 0 ; 
+}
