@@ -1,0 +1,147 @@
+#include<bits/stdc++.h>
+
+#pragma GCC optimize("-Ofast")
+#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+const ll inf = 1e17 ; 
+// How interesting!
+
+int n , s , q , root ; 
+vii adj[N] , e; 
+int st[N] , en[N], hei[N]; 
+int T ; 
+ll pref[N] ; 
+bool sp[N] ; 
+int up[N][20] ; 
+ll um[N][20] ; 
+ll val[N] ; 
+
+void dfz(int x, int p){
+        st[x] = ++ T ; 
+        up[x][0] = p ; 
+        hei[x] = hei[p] + 1; 
+        for(int i = 1; i < 20 ; ++ i){
+                up[x][i] = up[ up[x][i-1] ][i - 1] ;
+        }
+        for(auto u : adj[x]){
+                if(u.first == p)
+                        continue ; 
+                pref[u.first] = pref[x] + u.second ; 
+                dfz(u.first , x) ; 
+        }
+        en[x] = ++ T; 
+}
+
+int upper(int u , int v){
+        return st[u] <= st[v] && en[v] <= en[u] ; 
+}
+
+ll dfg(int x , int p){
+        ll ret = (sp[x] ? 0 : inf) ;
+
+        for(auto u : adj[x]){
+                if(u.first == p)
+                        continue ; 
+                ret = min(ret , dfg(u.first , x) + u.second) ;
+        }
+
+        return val[x] = ret ; 
+}
+
+void dfc(int x , int p){
+
+        um[x][0] = val[x] ; 
+
+        for(int i = 1; i < 20 ; ++ i){
+                um[x][i] = min( um[x][i - 1] , um[ up[x][i-1] ][i -1] ) ; 
+        }
+        for(auto u : adj[x]){
+                if(u.first == p)
+                        continue ; 
+                dfc(u.first , x) ;
+        }
+}
+
+ll getM(int x , int y){
+        int dt = hei[x] - hei[y] + 1 ; 
+        ll ret = inf ; 
+        for(int i = 19 ; ~ i ; -- i){
+                if(dt&(1<<i)){
+                        ret = min(ret , um[x][i] ) ; 
+                        x = up[x][i] ; 
+                }
+        }
+        return ret ; 
+}
+
+ll solve(int root , int x){
+        return min(val[x] , getM(x , root) ) + pref[x]; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" , stdin) ; 
+
+        cin >> n >> s >> q >> root ; 
+
+        for(int i = 0 ;i < n - 1 ; ++ i){
+                int u , v , w ; 
+                cin >> u >> v >> w; 
+                e.push_back({u , v}) ;
+                adj[u].push_back({v , w}) ; 
+                adj[v].push_back({u , w}) ;
+        }
+
+        for(int i = 0 ;i < s ; ++ i){
+                int x ; 
+                cin >> x ; 
+                sp[x] = 1; 
+        }
+        dfz(root , root) ; 
+        dfg(root , root) ;
+
+        for(int i = 1 ; i <= n; ++ i){
+                if(val[i] != inf)
+                        val[i] -= pref[i] ; 
+        }   
+        dfc(root , root) ;
+
+        for(int i = 0 ;i < q ; ++ i){
+                int u , v , x, y ; 
+                cin >> x >> y; 
+                x -- ; 
+                u = e[x].first , v = e[x].second ; 
+
+                if(upper(v , u))
+                        swap(u , v) ;
+                if(!upper(v , y)){
+                        cout<<"escaped" ; 
+                }
+                else{
+                        ll ans = solve(v , y) ;
+                        if(ans  >= 1e16)
+                                cout<<"oo" ; 
+                        else
+                                cout<< ans ; 
+                }
+                cout<<"\n" ; 
+        }
+
+        return 0 ; 
+}
