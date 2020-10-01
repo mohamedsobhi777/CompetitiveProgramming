@@ -1,0 +1,113 @@
+
+#include<bits/stdc++.h>
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+
+using namespace std ; 
+
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n ; 
+double w[N] , d[N] , xs[N]; 
+double tot , L ; 
+vector<int> farm ; 
+int bef[N] , aft[N] ; 
+long long toti ;
+
+long long inv(){
+
+}
+
+pair<double , long long > check(double tim){
+
+        vector< pair<double,int> > vec ; 
+
+        for(int i = 0 ;i < n ; ++ i){
+                vec.push_back({ 1.0 * d[farm[i]] * tim + xs[farm[i]] , d[farm[i]] * (farm[i]+1) }) ; 
+        }
+
+        sort(vec.begin() , vec.end()) ;
+        long long cnt = 0 ; 
+        long long meets = 0 , totn = 0; 
+        double retd = 0 ; 
+        int le = 0 , ri = 0 ; 
+
+        for(int i = 0 ;i < n ;++ i){
+                if(vec[i].first <= 0)
+                        le++ ; 
+                else if(vec[i].first >= L)
+                        ri ++ ; 
+        }
+
+        for(int i = 0 ;i < n ; ++ i){
+                int j = abs(vec[i].second) - 1;
+                if(vec[i].second >= 0)
+                        totn += cnt ; 
+                cnt += (vec[i].second < 0) ;
+        }
+
+        for(int i = 0 ;i < le ; ++ i)
+                retd += w[farm[i]] ; 
+        for(int i = 0 ;i < ri ; ++ i)
+                retd+= w[farm[n - 1 - i]] ; 
+
+        meets = totn - toti; 
+        return {retd , meets } ; 
+
+}
+
+bool cmp(int x , int y){
+        return xs[x] < xs[y] ; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ;
+        freopen("meetings.in" , "r" , stdin) ; 
+        freopen("meetings.out" , "w" , stdout) ;  
+        
+        cin >> n >> L ; 
+
+        for(int i = 0 ; i < n ; ++ i){
+                cin >> w[i] >> xs[i] >> d[i] ;
+                farm.push_back(i) ; 
+                tot += w[i]; 
+        }
+
+        sort(farm.begin() , farm.end() , cmp) ; 
+        long long cnt = 0; 
+        for(int i = 0 ;i < n; ++ i){
+                int j = farm[i] ; 
+                if(d[j] == 1)
+                        toti += cnt ; 
+                cnt += (d[j] == -1) ; 
+        }       
+
+        double lo = 0 , hi = 1e9 ; 
+        long long ans = 0 ; 
+        for(int i = 0 ;i < 100 ;i ++){
+                double mid = (lo + hi) / 2 ; 
+                pair<double, long long> gt = check(mid) ; 
+                if( gt.first >= tot / 2){
+                        ans = gt.second ;  
+                        hi = mid ; 
+                }else
+                lo = mid ; 
+        }
+
+        cout<< ans ; 
+        return 0 ; 
+}
