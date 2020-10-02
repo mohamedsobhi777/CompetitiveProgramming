@@ -1,0 +1,58 @@
+/*
+        Problem : TOKIOpen 18-TileCovering
+        Link : https://tlx.toki.id/problems/toki-open-2018/D2-1
+        Handle : Mohamed.Sobhy
+
+        Solution : 
+                Let nxt[i] be the first index j in A such that A[j] >= A[i] + k
+                                 (can be calculated easily with binary search)
+                now for a query [L,R] we get the corrospending indices in A as follows 
+
+                - x : first index in A with A[x] >= L
+                - y : first index in A with A[y] > R
+
+                now we can use binary lifting to get the min number of tiles to jump from x to y
+
+        Complexity ( (Q + M) * Log M )
+*/
+
+#include "tile.h"
+#include<bits/stdc++.h>
+
+using namespace std ; 
+const int MX = 3e5 + 7 ; 
+
+vector<int> chx ;
+int _k , _q , _m; 
+int up[MX][19] ;
+
+void init(int N, int K, int Q, int M, std::vector<int> A) {
+        chx = A ; 
+        _k = K ; 
+        chx.push_back(2e9) ; 
+        for(int i = 0 ;i < 19 ; ++ i)
+                up[M][i] = M ; 
+        for(int i = M - 1; ~i ; -- i){
+                int r = lower_bound(chx.begin() , chx.end() , chx[i] + _k) - chx.begin(); 
+                up[i][0] = r ; 
+                for(int j = 1;j < 19 ; ++ j){
+                        up[i][j] = up[up[i][j - 1]][j - 1] ; 
+                }
+        }
+}
+
+int getNumberOfSpecialTiles(int L, int R){
+        int ret = 0 ; 
+        int mx = -1e9 ;
+        int l = lower_bound(chx.begin() , chx.end() , L) - chx.begin(); 
+        int r = upper_bound(chx.begin() , chx.end() , R) - chx.begin(); 
+        if(l == r)
+                return 0; 
+        for(int i = 18 ; ~i ; -- i){
+                if(up[l][i] < r){
+                        l = up[l][i] ; 
+                        ret += (1<<i) ; 
+                }
+        }       
+        return ++ret ; 
+}
