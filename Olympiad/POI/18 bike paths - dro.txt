@@ -1,0 +1,101 @@
+#include<bits/stdc++.h>
+
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n , m; 
+
+int vis[N], fat[N], sz[N] , dp[N]; 
+vector<int> adj[N] , jda[N] , maj[N] ; 
+vector<int> Top ; 
+int Col ; 
+
+void dfs(int x){
+        if(vis[x]++)
+                return ; 
+        for(auto u : adj[x]){
+                dfs(u) ; 
+        }
+        Top.push_back(x) ; 
+}       
+
+void dfx(int x){
+        if(vis[x] ++ )
+                return ; 
+
+        fat[x] = Col ; 
+        ++ sz[Col] ; 
+        for(auto u : jda[x]){
+                dfx(u) ; 
+        }
+}
+
+int solve(int x, int p ){
+        if(dp[x])return dp[x] ; 
+        int ret = sz[x] ; 
+        for(auto u : maj[x]){
+                if(u == p)
+                        continue ; 
+                ret += solve(u , x) ; 
+        }
+        return dp[x] = ret ; 
+}
+
+int main(){
+
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" , stdin) ; 
+        cin >> n >> m; 
+
+        for(int i = 0 ;i < m; ++ i){
+                int u , v ; 
+                cin >> u >> v; 
+                adj[u].push_back(v) ;
+                jda[v].push_back(u) ; 
+        }
+        for(int i = 1;i <= n ;++ i){
+                dfs(i) ; 
+        }
+
+        memset(vis , 0 , sizeof vis) ;
+        for(int i = n - 1; ~i ; -- i){
+                if(vis[Top[i]])continue ; 
+                ++ Col ; 
+                dfx(Top[i]) ; 
+        }
+
+        for(int i = 1 ;i <= n; ++ i){
+                for(auto u : adj[i]){
+                        int a = fat[i] ; 
+                        int b = fat[u] ; 
+
+                        if(a != b){
+                                maj[a].push_back(b) ; 
+                        }
+                }
+        }
+        for(int i = 1; i <= n; ++ i){
+                cout<< solve(fat[i], fat[i]) - 1<<"\n" ;
+        }
+        return 0 ; 
+}
