@@ -34,10 +34,10 @@ int main(){
 }
 
 /*
-        - bounds sir (segtree = 4N - eulerTour = 2N, ...)
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
         - a variable defined twice?
         - will overflow?
         - is it a good complexity?
         - don't mess up indices (0-indexed vs 1-indexed)
-        - reset everything between testcases. 
+        - reset everything between testcases
 */
