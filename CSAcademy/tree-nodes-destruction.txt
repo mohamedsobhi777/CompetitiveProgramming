@@ -1,0 +1,128 @@
+#include<bits/stdc++.h>
+
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 2e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n, k; 
+vector<int> adj[N] ; 
+int up[N][20] ; 
+int imp[N], d[N]; 
+int prv[N] ; 
+vector<pii> vec[N] ; 
+int ans  ; 
+int val[N] ; 
+int t , st[N] , en[N] ; 
+int bit[N] ; 
+
+void dfs(int x, int p){
+        st[x] = ++ t ; 
+        up[x][0] = p ; 
+        for(int i = 1 ;i < 20 ; ++ i)
+                up[x][i] = up[up[x][i - 1]][i - 1] ; 
+        d[x] = d[p] + 1; 
+        for(auto u : adj[x]){
+                if(u == p)
+                        continue ; 
+                prv[u] = x; 
+                dfs(u , x) ; 
+        }
+
+        en[x] = ++ t; 
+}
+
+bool upper(int u , int v){
+        return st[u] <= st[v] && en[v] <= en[u] ; 
+}
+
+int lca(int u , int v){
+        if(upper(u , v))return u ; 
+        if(upper(v , u))return v ; 
+        for(int i = 19 ; ~ i ;-- i)
+                if(!upper(up[u][i] , v))
+                        u = up[u][i] ; 
+        return up[u][0] ; 
+}
+
+int climb(int x , int l){
+        int ret = 0 ; 
+        while(x != l){
+                ret += val[x] ; 
+                x = prv[x] ; 
+        }
+
+        return ret ;
+}
+
+inline void add(int x, int y){for(;x<N;x+=x&-x)bit[x]+=y;}
+inline int sum(int x, int ret = 0){for(;x;x-=x&-x)ret+=bit[x] ; return ret; }
+inline int path(int x, int y){return sum(y) - sum(x - 1) ;}
+
+int get(int u , int v , int lc){
+        return path(st[lc] , st[u]) + path(st[lc] , st[v]) - val[lc] ;
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        cin >> n >> k ; 
+        for(int i = 0 ; i < n - 1; ++ i){
+                int u , v; 
+                cin >> u >> v ; 
+                adj[u].push_back(v) ; 
+                adj[v].push_back(u) ; 
+        }
+        dfs(1 , 1) ; 
+        for(int i = 0 ;i < k ; ++ i){
+                int u , v;
+                cin >> u >> v; 
+                int lc = lca(u , v) ; 
+                imp[lc] = 1 ; 
+                vec[lc].push_back({u , v}) ; 
+        }
+        priority_queue<pair<int,int> > q ; 
+        for(int i = 1; i<= n; ++ i){
+                if(imp[i]){
+                        q.push({d[i] , i}) ; 
+                }
+        }
+        while(q.size()){
+                int nod = q.top().second ; 
+                q.pop() ; 
+
+                bool ak = 1 ; 
+
+                for(auto u : vec[nod]){
+                        if(get(u.first,  u.second , nod) == 0){
+                                ak = 0 ; 
+                        }
+                }
+                if(!ak){
+                        ++ ans ; 
+                        add(st[nod] , 1) ; 
+                        add(en[nod] , -1 ) ; 
+                        val[nod] = 1; 
+                }
+
+        }
+        cout<< ans ; 
+        return 0 ; 
+}
