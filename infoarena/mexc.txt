@@ -1,0 +1,132 @@
+/*
+        Problem : infoarena mexc
+        link : https://www.infoarena.ro/problema/mexc
+        handle : mohamedsobhi777
+
+        Solution : 
+                statement : for a cell a[i,j] how many cells y it can end up at by moving to cells
+                adjacent by edge such that each cell on the path has a vaule >= a[i,j] - d, and 
+                the value of the end positon y is >= a[i,j]
+
+                we will sort cells by value non-increasingly, and we will use a sort of sliding window
+                that maintains all the cells with values >= the value of the current cell - d
+
+                we need some info about the connectivty of these cells so we can use dsu to answer these : 
+                        - how many cells are connected to x(curent cell) 
+
+                note that we count only cells with values greater than x for the answer.
+*/
+
+
+#include<bits/stdc++.h>
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+#define all(x) x.begin(),x.end()
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 800 + 7 , mod = 1e9 + 7 ; 
+const ll inf = 2e18 ; 
+
+// How interesting!
+
+int n, m , d; 
+vector< pair< int, pii> > v ; 
+int a[N][N] ; 
+int fat[N * N] ; 
+int ans[N][N] ;
+int cnt[N * N] ; 
+bool on[N * N] ; 
+inline int find(int x){return fat[x] = (fat[x] == x ? x : find(fat[x]));}
+vector< pair<int,int> > cs[100005] ; 
+
+void link(int u, int v){
+        u = find(u) ; 
+        v = find(v) ;
+        if(u != v){
+                cnt[v] += cnt[u] ; 
+                fat[u] = v; 
+                cnt[u] = 0 ; 
+        }
+}
+
+int id(int i , int j){
+        return i * m +  j ; 
+}
+
+int m1[4] = {1 , - 1, 0 , 0} , m2[4] = {0 , 0 , 1 , -1} ;
+inline bool good(int x , int y){return ~x && ~y && x < n && y < m; }
+
+void add(int x, int y){
+        int x0 = x ; 
+        x = id(x,y) ; 
+        on[x] = 1; 
+        for(int i = 0 ;i < 4 ; ++ i){
+                int f1 = x0 + m1[i] , f2 = y + m2[i] ; 
+                if(good(f1 , f2) && on[id(f1,f2)]){
+                        link(x , id(f1,f2)) ;
+                }
+        }
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        
+        freopen("mexc.in" , "r" , stdin) ; 
+        freopen("mexc.out" , "w" , stdout) ;
+
+        cin >> n >> m >> d; 
+
+        for(int i = 0 ;i < n; ++ i){
+                for(int j = 0 ;j < m; ++ j){
+                        cin >> a[i][j] ;
+                        cs[a[i][j]].push_back({i , j}) ;
+                }
+        }
+        for(int i = 0 ;i <= n * m ;++ i){
+                fat[i] = i ;   
+        }
+
+        int j =100000; 
+        for(int i = 100000 ; ~i ; -- i){
+                while(~j && j >= i - d){
+                        for(auto u : cs[j]){
+                                add(u.first, u.second) ;
+                        } 
+                        j -- ; 
+                }
+                for(auto u : cs[i]){
+                        int di = id(u.first , u.second) ; 
+                        cnt[find(di)] ++ ; 
+                }
+                for(auto r : cs[i]){
+                        int x = r.first, y = r.second ;        
+                        ans[x][y] = cnt[find(id(x,y))] ;          
+                }
+        }
+
+        for(int i = 0 ;i < n; ++ i){
+                for(int j = 0 ;j < m; ++ j){
+                        cout<< ans[i][j] <<" " ; 
+                }
+                cout<<"\n" ;
+        }
+        return 0 ; 
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/ 
