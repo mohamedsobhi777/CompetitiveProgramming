@@ -1,0 +1,118 @@
+#include<bits/stdc++.h>
+
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 2e6 + 7 , mod = 1e9 + 7 ; 
+const ll inf = 2e18 ; 
+
+// How interesting!
+
+int n, m; 
+string s , t; 
+vector<string> lst ; 
+
+int node1, node2 ; 
+int nxt[N][26], nxt2[N][26] ; 
+vector<int> vec[N] ; 
+int L[N] , R[N] ; 
+inline void norm(string &x){for(auto &u : x)u -='A';}
+
+void add1(string &x, int j){
+        int cur = 0 ; 
+        for(int i = 0 ; i < (int) x.size() ; ++ i){
+                if(!nxt[cur][ x[i] ])
+                        nxt[cur][x[i]] = ++ node1 ; 
+                cur = nxt[cur][x[i]] ; 
+                L[cur] = min(L[cur] , j) ; 
+                R[cur] = max(R[cur] , j) ; 
+        }
+}
+
+pair<int,int> getlr(string &x){
+        int cur = 0 ; 
+        for(int i = 0 ;i <(int) x.size() ; ++ i){
+                if(!nxt[cur][x[i]])return {-1 , -1} ; 
+                cur = nxt[cur][x[i]] ; 
+        }
+        return {L[cur] , R[cur]} ; 
+}
+
+
+void add2(string &x, int j){
+        int cur = 0 ; 
+        for(int i = (int) x.size() - 1 ; ~ i ; -- i){
+                if(!nxt2[cur][ x[i] ])
+                        nxt2[cur][x[i]] = ++ node2 ; 
+                cur = nxt2[cur][x[i]] ; 
+                vec[cur].push_back(j) ; 
+        }
+}
+
+int solve(string &x, int l , int r){
+        int cur = 0 ; 
+        for(int i = (int) x.size() - 1 ; ~ i ; -- i){
+                if(!nxt2[cur][ x[i] ])return 0 ; 
+                cur = nxt2[cur][x[i]] ;  
+        }
+        return upper_bound(vec[cur].begin() , vec[cur].end() , r) -
+        lower_bound(vec[cur].begin() , vec[cur].end(), l ) ; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" , stdin) ; 
+        cin >> n >> m; 
+        for(int i = 0 ; i < n; ++ i){
+                cin >> s; 
+                norm(s) ;
+                lst.push_back(s) ; 
+        }
+
+        sort(lst.begin() , lst.end()) ; 
+        for(int i = 0 ;i < N; ++ i)
+                L[i] = 1e9, R[i] = -1 ; 
+
+        for(int i = 0 ; i < n ; ++ i){
+                add1(lst[i], i) ; 
+                add2(lst[i] , i); 
+        }
+        for(int i = 0 ;i < N; ++ i)sort(vec[i].begin() , vec[i].end()) ;
+                for(int i = 0 ;i < m ; ++ i){
+                        cin >> s >> t; 
+                        norm(s) ; norm(t); 
+                        pair<int,int> p = getlr(s) ; 
+                        if(p.first == -1){
+                                cout<<"0\n" ; 
+                                continue ; 
+                        }
+                        cout<< solve(t , p.first , p.second) <<"\n" ; 
+                }
+
+                return 0 ; 
+        }
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
