@@ -1,0 +1,157 @@
+#include "factories.h"
+#include<bits/stdc++.h>
+//#include "grader.cpp"
+
+const int MX = 5e5 + 7 ; 
+using namespace std ; 
+
+vector<pair<int,int> > adj[MX];
+vector<int> adx[MX];
+int st[MX], en[MX] , t ; 
+int up[MX][20] ; 
+int col[MX] ; 
+long long pref[MX] ; 
+int _n; 
+
+void dfs(int x, int p ){
+        st[x] = ++ t ; 
+        up[x][0] = p ; 
+        for(int i = 1; i < 20 ; ++ i)
+                up[x][i] = up[ up[x][i-1]][i-1] ; 
+        for(auto u : adj[x]){
+                if(u.first == p)continue ;
+                pref[u.first] = pref[x] + u.second ;  
+                dfs(u.first , x) ; 
+        }
+        en[x] = ++ t; 
+}
+
+inline bool upper(int u , int v){return st[u] <= st[v] && en[v] <= en[u] ;}
+inline bool cmp(int u ,int v){return st[u] < st[v] ;}
+
+int lca(int u ,int v){
+        if(upper(u , v))return u ; 
+        if(upper(v , u))return v ; 
+        for(int i = 19 ; ~ i; -- i){
+                if(!upper(up[u][i] , v))
+                        u = up[u][i] ; 
+        }
+        return up[u][0] ; 
+}
+
+void edge(int u , int v){
+        adx[u].push_back(v) ; 
+        adx[v].push_back(u) ; 
+}
+
+long long nrst[MX], nerst[MX] ; 
+
+long long dfz(int x, int p){
+        long long ret = 1e18 ; 
+        if( (col[x]&2) )ret = 0 ; 
+
+        for(auto u : adx[x]){
+                if(u == p)continue ; 
+                ret = min(ret , pref[u] - pref[x] + dfz(u , x)) ; 
+        }
+
+        return nrst[x] = ret ; 
+}
+
+long long dfz2(int x, int p){
+        long long ret = 1e18 ; 
+        if( (col[x]&1) )ret = 0 ; 
+
+        for(auto u : adx[x]){
+                if(u == p)continue ; 
+                ret = min(ret , pref[u] - pref[x] + dfz2(u , x)) ; 
+        }
+
+        return nerst[x] = ret ; 
+}
+
+long long answer = 0 ; 
+
+long long solve(int x, int p, long long ner = 1e18 ){
+        long long ret = ( (col[x]&1) == 1 ? nrst[x] : 1e18)  ; 
+
+        for(auto u : adx[x]){
+                if(u == p)continue; 
+                long long add = 1e18 ; 
+                for(auto j : adx[x]){
+                        if(j == p || j == u)continue ; 
+                        add = min(add , nrst[j] + pref[j] - pref[x]) ; 
+                }
+                ret = min(ret , solve(u , x, min(ner,add )  + pref[u] - pref[x] ) ) ; 
+
+        }
+        if((col[x]&1) == 1){
+                answer = min(answer, min(ret , ner)) ; 
+        }
+        return ret;
+}
+
+long long build(vector<int> &vec){
+        answer = 1e18 ; 
+        vec.push_back(0) ; 
+        int sz = (int) vec.size() ; 
+        sort(vec.begin() , vec.end() , cmp) ;
+        for(int i = 1; i < sz; ++ i){
+                vec.push_back(lca(vec[i-1] , vec[i])) ; 
+        }
+        sort(vec.begin() , vec.end(), cmp) ; 
+        vec.erase(unique(vec.begin() , vec.end()) , vec.end()) ;
+        vector<int> aux = {vec[0]} ; 
+
+        for(int i = 1; i < (int) vec.size() ; ++ i){
+                int j = vec[i] ; 
+                while(aux.size() > 1 && !upper(aux.back() ,j) ){
+                        edge( aux[aux.size() - 2] , aux.back() ) ; 
+                        aux.pop_back() ;
+                }
+                aux.push_back(j) ; 
+        }
+
+        while(aux.size() > 1){
+                edge(aux[aux.size() - 2] , aux.back()) ; 
+                aux.pop_back() ; 
+        }
+
+        dfz(0 , 0) ; 
+        dfz2(0 , 0) ; 
+        for(auto u : vec)
+                answer = min(answer , nrst[u] + nerst[u]) ; 
+
+        for(auto u : vec){
+                col[u] = 0 ; 
+                adx[u].clear() ; 
+                nrst[u] = nerst[u] = 1e18 ; 
+        }
+        return answer ;
+}
+
+void Init(int N, int A[], int B[], int D[]) {
+        _n = N ; 
+        for(int i = 0 ;i < N - 1; ++ i){
+                int u = A[i] , v = B[i] , w = D[i] ; 
+                adj[u].push_back({v , w}) ; 
+                adj[v].push_back({u , w}) ; 
+        }
+        fill(nrst , nrst + N , 1e18) ; 
+        fill(nerst , nerst + N , 1e18) ; 
+        dfs(0 , 0) ; 
+}
+
+long long Query(int S, int X[], int T, int Y[]) {
+        vector<int> vec ; 
+        for(int i = 0 ;i < S ; ++ i){
+                col[X[i]]|=1;
+                vec.push_back(X[i]) ; 
+        }
+        for(int i = 0 ;i < T ; ++ i){
+                vec.push_back(Y[i]) ; 
+                col[Y[i]]|=2;
+        }
+        build(vec) ; 
+        return answer ; 
+}
