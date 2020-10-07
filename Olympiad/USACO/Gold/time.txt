@@ -1,0 +1,70 @@
+#include<bits/stdc++.h>
+
+
+#pragma GCC optimize("-Ofast")
+#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1100 + 7 , mod = 1e9 + 7 ; 
+const ll inf = 2e18 ; 
+
+// How interesting!
+
+int n, m , c; 
+int a[N] ; 
+vector<int> adj[N] ; 
+int lmt ; 
+int dp[N][N] ; 
+
+int solve(int x, int t){
+        if(~dp[x][t])return dp[x][t]; 
+        int ret = (x == 1 ? -c * t * t : -1e9) ;   
+        if(t >= lmt)return ret; 
+        for(auto u : adj[x])
+                ret = max(ret , solve(u , t + 1) + a[u] ) ; 
+        return dp[x][t] = ret;  
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        memset(dp , -1 , sizeof dp) ; 
+        freopen("time.in" , "r" , stdin) ; 
+        freopen("time.out" , "w" , stdout) ; 
+        cin >> n >> m >> c ; 
+
+        for(int i = 1 ;i <= n; ++ i){
+                cin >> a[i] ; 
+        }
+        lmt = accumulate(a , a + n + 1, 0) / c + 10 ; 
+        lmt = 1100 ; 
+        for(int i = 0 ; i < m; ++ i){   
+                int u , v; 
+                cin >> u >> v ; 
+                adj[u].push_back(v) ; 
+        }
+        cout<< solve(1 , 0) ; 
+        return 0 ; 
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
