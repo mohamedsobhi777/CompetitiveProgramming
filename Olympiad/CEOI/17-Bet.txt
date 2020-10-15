@@ -1,0 +1,80 @@
+#include<bits/stdc++.h>
+
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 2e5 + 7 , mod = 1e9 + 7 ; 
+const ll inf = 2e18 ; 
+
+// How interesting!
+
+int n ; 
+vector<double> d[2], pd[2]; 
+double ans ; 
+
+void solve2(){
+        double sum1 = 0.0 ; 
+        for(int i = 0 ;i < n; ++ i){
+                sum1 += d[0][i] ; 
+                int k = lower_bound(pd[1].begin() , pd[1].end() , sum1 + i + 1 ) - pd[1].begin() ; 
+                if(k != pd[1].size()){
+                        ans = max(ans , sum1 - k - 1)  ; 
+                }      
+        }
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" , stdin) ; 
+        cin >> n; 
+        for(int i = 0 ;i < n; ++ i){
+                double a , b; 
+                cin >> a >> b ;
+                a-=1.0 ; b-=1.0 ; 
+                d[0].push_back(a) ; 
+                d[1].push_back(b) ; 
+        }
+        for(int i = 0 ;i < 2 ; ++ i){
+                sort(d[i].begin() , d[i].end(), greater<double>()) ; 
+                pd[i].resize(n) ; 
+        }
+
+        pd[0][0] = d[0][0] +1.0; 
+        pd[1][0] = d[1][0] +1.0; 
+        for(int i = 0 ; i < 2 ; ++ i){
+
+                for(int j = 1 ;j < n ; ++ j)
+                        pd[i][j] = pd[i][j-1] + d[i][j] +1.0; 
+        }
+        solve2() ; 
+        swap(d[0] , d[1]) ; 
+        swap(pd[0] , pd[1]) ;
+        solve2() ; 
+        cout<< fixed <<setprecision(4) << ans ;
+        return 0 ; 
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
