@@ -1,0 +1,111 @@
+#include<bits/stdc++.h>
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 5e6 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int n, m; 
+int w, h ; 
+vector< pair<double,pii> > all ; 
+double tx[N],ty[N],tr[N] ; 
+
+int fat[N] ; 
+
+inline int find(int x){return fat[x] = (x == fat[x] ? x : find(fat[x])) ; }
+inline bool same(int x, int y){return find(x) == find(y) ; }
+
+void link(int u , int v){
+        u = find(u) ;
+        v = find(v) ; 
+        if(u!=v)fat[u] = v ; 
+}
+
+string ans[N] ; 
+
+int main(){
+
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        //freopen("in.in" , "r" , stdin) ; 
+
+        cin >> n >> m; 
+        cin >> w >> h ;
+        for(int i = 0 ;i < N ; ++ i)fat[i] = i ; 
+        for(int i = 0 ;i < n; ++ i){
+                cin >> tx[i] >> ty[i] >> tr[i] ; 
+                for(int j = 0 ;j < i ;++ j){
+                        double d = hypot(tx[i] - tx[j] , ty[i] - ty[j]) - tr[i] - tr[j] ; 
+                        all.push_back({d , {i , j} }) ; 
+                }
+                all.push_back({ty[i] - tr[i] , {i , n + 1}}) ; 
+                all.push_back({tx[i] - tr[i] , {i , n + 2}}) ; 
+                all.push_back({w - tx[i] - tr[i] , {i , n + 3}}) ; 
+                all.push_back({h - ty[i] - tr[i] , {i , n + 4}}) ; 
+        } 
+
+        for(int i = 1 ;i <= m ;++ i){
+                double r ;
+                int e ;
+                cin >> r >> e ;
+                all.push_back({r * 2 , { - i , e} }) ; 
+        }
+        sort(all.begin() , all.end()) ; 
+        for(auto u : all){
+                if(u.second.first < 0){
+                        int j = -(u.second.first + 1) ; 
+                        int ant = u.second.second ; 
+                        if(same(n + 1 , n + 4) && same(n + 2 , n + 3) ){
+                                ans[j] = char('0' + ant) ; 
+                        }
+                        else if(same(n + 1, n + 4) ){
+                                if(ant == 1 || ant == 4){
+                                        if(!same(n + 1, n + 2) && !same(n + 2, n + 4)){
+                                                ans[j] = "14" ; 
+                                        }else ans[j] = char('0' + ant) ; 
+                                }else{
+                                        if(!same(n + 1, n + 3) && ! same(n + 3 , n + 4)){
+                                                ans[j] = "23" ; 
+                                        }else ans[j] = char('0' + ant) ; 
+                                }
+                        }else if(same(n + 2 , n + 3)){
+                                if(ant == 1 || ant == 2){
+                                        if(!same(n + 1 , n + 2) && !same(n + 1 , n + 3)){
+                                                ans[j] = "12" ; 
+                                        }else ans[j] = char('0' + ant) ; 
+                                }else{
+                                        if(!same(n + 2 , n + 4) && !same(n + 3, n + 4)){
+                                                ans[j] = "34" ; 
+                                        }else ans[j] = char('0' + ant) ; 
+                                }
+                        }else{
+                                vector<int> ok(5 , 1) ; 
+                                if(same(n + 1 , n + 2))ok[1] = 0 ; 
+                                if(same(n + 1 , n + 3))ok[2] = 0 ; 
+                                if(same(n + 3 , n + 4))ok[3] = 0 ; 
+                                if(same(n + 2 , n + 4))ok[4] = 0 ; 
+                                for(int k = 1; k<= 4 ;++ k){
+                                        if((ok[ant] && ok[k]) || ant == k)
+                                                ans[j] += char('0' + k) ; 
+                                } 
+                        }
+                }else{
+                        link(u.second.first ,u.second.second) ;
+                }
+        }
+        for(int i = 0 ;i < m; ++ i){
+                cout<< ans[i] <<"\n" ;
+        }
+
+        return 0 ; 
+}
