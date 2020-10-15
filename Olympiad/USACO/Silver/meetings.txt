@@ -27,10 +27,6 @@ vector<int> farm ;
 int bef[N] , aft[N] ; 
 long long toti ;
 
-long long inv(){
-
-}
-
 pair<double , long long > check(double tim){
 
         vector< pair<double,int> > vec ; 
