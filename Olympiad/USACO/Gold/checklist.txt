@@ -1,0 +1,81 @@
+#include<bits/stdc++.h>
+
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 2000 + 7 , mod = 1e9 + 7 ; 
+const ll inf = 2e18 ; 
+
+// How interesting!
+
+int n, m; 
+int x[N], y[N] ; 
+ll dp[N][N][2] ;
+
+ll dist(int i , int j){
+        if(i == n + m || j == n + m || i < 0 || j < 0 )
+                return 0 ; 
+        ll dx = x[i] - x[j] ; 
+        ll dy = y[i] - y[j] ; 
+        return 1ll * dx * dx + 1ll * dy * dy ; 
+}
+
+ll solve(int x, int y , int d){
+        if(x == n && y < m)return 1e18 ;        
+        if(x == n && y == m)return 0; 
+        if(~dp[x][y][d])return dp[x][y][d] ; 
+        if(y == m){
+                if(d)
+                        return dp[x][y][d] = solve(x + 1 , y , 0) + dist(y + n - 1, x) ; 
+                else
+                        return dp[x][y][d] =  solve(x + 1 , y , 0) + dist(x - 1, x ) ; 
+        }
+        ll ret = 1e18 ; 
+        int pos = (d ? n + y : x) - 1; 
+        if(d){
+                ret = min(ret , solve(x , y + 1 , 1) + dist(pos, y + n) ) ;
+                ret = min(ret , solve(x + 1, y , 0 ) + dist(pos , x)  ) ;
+        }else{
+                ret = min(ret , solve(x + 1 , y , 0) + dist(pos, x ) ) ;
+                ret = min(ret , solve(x , y + 1, 1) + dist(pos, y+n) ) ;  
+        }
+        return dp[x][y][d] = ret ; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        freopen("checklist.in" , "r" , stdin) ; 
+        freopen("checklist.out" , "w" , stdout) ;
+        memset(dp , -1 , sizeof dp) ;
+        cin >> n >> m; 
+        for(int i = 0 ;i < n + m; ++ i){
+                cin >> x[i] >> y[i] ;                 
+        }
+        cout<<solve(1 , 0 , 0)  ;
+        return 0 ; 
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
