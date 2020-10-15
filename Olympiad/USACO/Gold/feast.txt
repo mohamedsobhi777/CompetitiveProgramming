@@ -1,0 +1,39 @@
+#include<bits/stdc++.h>
+
+#define I inline void 
+#define S struct 
+#define vi vector<int> 
+#define vii vector<pair<int,int>>
+#define pii pair<int,int>
+#define pll pair<ll,ll>
+
+using namespace std ; 
+using ll = long long ; 
+using ld = long double ; 
+
+const int N = 1e5 + 7 , mod = 1e9 + 7 ; 
+const int inf = N ; 
+// How interesting!
+
+int t , a , b ; 
+int dp[N][2] ; 
+
+int solve(int x , int w){
+        if(~dp[x][w])return dp[x][w] ; 
+        int ret = x ; 
+        if(x + a <= t)ret = max(ret , solve(a + x , w)) ; 
+        if(x + b <= t)ret = max(ret , solve(b + x , w) ) ; 
+        if(!w)ret = max(ret , solve(x/2,1) ) ; 
+        return dp[x][w] = ret ; 
+}
+
+int main(){
+        ios_base::sync_with_stdio(0) ;
+        cin.tie(0) ; 
+        freopen("feast.in" , "r" , stdin) ; 
+        freopen("feast.out" , "w" , stdout) ; 
+        cin >> t >> a >> b ; 
+        memset(dp , -1 , sizeof dp) ; 
+        cout<< solve(0 , 0) ; 
+        return 0 ; 
+}
