@@ -1,0 +1,156 @@
+#include "horses.h"
+#include "grader.cpp"
+#include <bits/stdc++.h>
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+using namespace std;
+using ll = long long;
+using ld = long double;
+using pii = pair<int, int>;
+
+const int _N = 5e5 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+int n, m;
+int X[_N], Y[_N];
+set<int> st;
+pii tree[_N * 4];
+ll a42 = 1ll;
+double l42;
+int invs[_N];
+
+void update(int node, int L, int R, int ix, int val)
+{
+        if (L == R)
+        {
+                tree[node] = {val, ix - 1};
+                return;
+        }
+        int mid = (L + R) >> 1;
+        if (ix <= mid)
+                update(node * 2 + 1, L, mid, ix, val);
+        else
+                update(node * 2 + 2, mid + 1, R, ix, val);
+        tree[node] = max(tree[node * 2 + 1], tree[node * 2 + 2]);
+}
+
+pii query(int node, int L, int R, int l, int r)
+{
+        if (l > r || l > R || r < L)
+                return {-1, -1};
+        if (L >= l && R <= r)
+                return tree[node];
+        int mid = (L + R) >> 1;
+        pii s1 = query(node * 2 + 1, L, mid, l, r);
+        pii s2 = query(node * 2 + 2, mid + 1, R, l, r);
+        return max(s1, s2);
+}
+
+inline int mul(int x, int y) { return 1ll * x * y % mod; }
+int faspow(int x, int y)
+{
+        if (!y)
+                return 1ll;
+        int ret = faspow(x, y / 2);
+        ret = 1ll * ret * ret % mod;
+        if (y & 1)
+                ret = 1ll * ret * x % mod;
+        return ret;
+}
+inline int inv(ll x) { return faspow(x, mod - 2); }
+
+void add(int x, ll v, ll old = 1ll)
+{
+        ++x;
+        int nv = mul(v, invs[x - 1]);
+        invs[x - 1] = inv(v);
+        a42 = mul(a42, nv);
+        l42 += log(v) - log(old);
+}
+
+int solve()
+{
+        double mx = 0;
+        double lg = 0;
+        vector<int> indi;
+        int rem = 1ll;
+        if (st.size())
+        {
+                auto it = st.end();
+                --it;
+                int sz = (int)st.size();
+                while (sz--)
+                {
+                        lg += log(X[(*it)]);
+                        int de = (*it);
+                        if (de)
+                        {
+                                rem = mul(rem, invs[*it]);
+                                indi.push_back(*it);
+                        }
+                        if (lg > log(1e9))
+                                break;
+                        --it;
+                }
+        }
+        double tot = l42 - lg;
+        indi.push_back(0);
+        rem = mul(rem, inv(X[0]));
+        int now = mul(a42, rem);
+        int ret = 1ll;
+        for (int x = indi.size() - 1; ~x; --x)
+        {
+                int u = indi[x];
+                tot += log(X[u]);
+                now = mul(now, X[u]);
+                pii gmax = query(0, 1, _N, u + 1, (!x ? n : indi[x - 1] + 1));
+                if (tot + log(gmax.first) > mx)
+                {
+                        ret = mul(now, Y[gmax.second]);
+                        mx = tot + log(gmax.first);
+                }
+        }
+        return ret;
+}
+
+void putit(int x, int val)
+{
+        if (val > 1)
+                st.insert(x);
+        else
+        {
+                st.erase(x);
+        }
+}
+
+int init(int N, int _X[], int _Y[])
+{
+        n = N;
+        for (int i = 0; i < N; ++i)
+        {
+                invs[i] = 1ll;
+                add(i, _X[i]);
+                putit(i, _X[i]);
+                update(0, 1, _N, i + 1, _Y[i]);
+                X[i] = _X[i];
+                Y[i] = _Y[i];
+        }
+        return solve();
+}
+
+int updateX(int pos, int val)
+{
+        add(pos, val, X[pos]);
+        putit(pos, val);
+        X[pos] = val;
+        return solve();
+}
+
+int updateY(int pos, int val)
+{
+        Y[pos] = val;
+        update(0, 1, _N, pos + 1, val);
+        return solve();
+}
