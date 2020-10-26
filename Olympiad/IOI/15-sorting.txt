@@ -1,0 +1,127 @@
+#include <bits/stdc++.h>
+#include "sorting.h"
+
+using namespace std;
+const int _N = 2e5 * 3;
+
+int n, m;
+int s[_N], _s[_N];
+int x[_N], y[_N];
+int t;
+int viz[_N];
+int Nxt[_N];
+int pos[_N];
+int rep[_N];
+
+vector<pair<int, int>> ans, ans2;
+
+void solve(int X)
+{
+        map<int, int> vis;
+        for (int i = 0; i < n; ++i)
+        {
+                if (vis[i])
+                        continue;
+                int cur = Nxt[i];
+                while (cur != i)
+                {
+                        ++vis[cur];
+                        ans.push_back({i, cur});
+                        cur = Nxt[cur];
+                }
+                ++vis[cur];
+        }
+        while (ans.size() < X)
+                ans.push_back({0, 0});
+        ans2.resize(X);
+
+        for (int i = 0; i < n; ++i)
+                pos[s[i]] = i;
+
+        for (int i = 0; i < X; ++i)
+        {
+                int x1 = pos[_s[x[i]]];
+                int x2 = pos[_s[y[i]]];
+                swap(rep[x1], rep[x2]);
+                ans2[i] = {rep[ans[i].first], rep[ans[i].second]};
+                swap(_s[x[i]], _s[y[i]]);
+        }
+}
+
+bool can(int mid)
+{
+        int nxt[_N];
+        for (int i = 0; i < n; ++i)
+                nxt[i] = _s[i];
+        for (int j = 0; j < mid; ++j)
+                swap(nxt[x[j]], nxt[y[j]]);
+        ++t;
+        int ret = 0;
+        for (int i = 0; i < n; ++i)
+        {
+                int cur = nxt[i];
+                if (viz[i] == t)
+                        continue;
+                ++ret;
+                while (cur != i)
+                {
+                        viz[cur] = t;
+                        cur = nxt[cur];
+                }
+                viz[cur] = t;
+        }
+        return n - ret <= mid;
+}
+
+int binary_sr4()
+{
+        int ret = m;
+        int lo = 1, hi = m;
+        while (lo <= hi)
+        {
+                int mid = (lo + hi) >> 1;
+                if (can(mid))
+                        hi = mid - 1, ret = mid;
+                else
+                        lo = mid + 1;
+        }
+        return ret;
+}
+
+int findSwapPairs(int N, int S[], int M, int X[], int Y[], int P[], int Q[])
+{
+        n = N;
+        m = M;
+        for (int i = 0; i < N; ++i)
+        {
+                Nxt[i] = S[i];
+                s[i] = S[i];
+                _s[i] = S[i];
+                rep[i] = i;
+        }
+        for (int i = 0; i < M; ++i)
+        {
+                x[i] = X[i];
+                y[i] = Y[i];
+        }
+        if (can(0))
+                return 0;
+        int opt = binary_sr4();
+        for (int i = 0; i < M; ++i)
+        {
+                swap(s[X[i]], s[Y[i]]);
+                swap(rep[X[i]], rep[Y[i]]);
+                swap(Nxt[X[i]], Nxt[Y[i]]);
+                if (i == opt - 1)
+                {
+                        solve(i + 1);
+                        for (int j = 0; j <= i; ++j)
+                        {
+                                P[j] = ans2[j].first;
+                                Q[j] = ans2[j].second;
+                        }
+                        return ++i;
+                }
+        }
+        return 0;
+}
