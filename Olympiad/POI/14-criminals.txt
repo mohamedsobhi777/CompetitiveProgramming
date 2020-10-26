@@ -1,0 +1,122 @@
+#include <bits/stdc++.h>
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 1e6 + 7, mod = 1e9 + 7;
+const int inf = N;
+// How interesting!
+
+int n, k;
+int l, r;
+int a[N], L[N], R[N];
+int vis[N][2];
+int frst[N];
+bool bad = 0;
+int prv[N], nxt[N];
+int lst[N];
+int suff[N];
+
+struct dsu
+{
+        int fat[N];
+        dsu()
+        {
+                for (int i = 0; i < N; ++i)
+                        fat[i] = i;
+        }
+        inline int find(int x) { return (x == fat[x] ? x : find(fat[x])); }
+        void link(int u, int v)
+        {
+                u = find(u);
+                v = find(v);
+                if (u != v)
+                {
+                        fat[u] = v;
+                }
+        }
+} le, ri;
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        cin >> n >> k;
+        fill(frst, frst + N, n + 1);
+        fill(suff, suff + N, n + 1);
+        memset(lst, -1, sizeof lst);
+        for (int i = 0; i < n; ++i)
+        {
+                cin >> a[i];
+                frst[a[i]] = min(frst[a[i]], i);
+        }
+        suff[n - 1] = frst[a[n - 1]];
+        for (int i = n - 2; ~i; --i)
+                suff[i] = min(suff[i + 1], frst[a[i]]);
+        cin >> l >> r;
+        for (int i = 0; i < l; ++i)
+        {
+                cin >> L[i];
+                if (i)
+                        prv[L[i]] = L[i - 1];
+                if (vis[L[i]][0]++)
+                        bad = 1;
+        }
+        for (int i = 0; i < r; ++i)
+        {
+                cin >> R[i];
+                if (vis[R[i]][1]++)
+                        bad = 1;
+        }
+        for (int i = 1; i < r; ++i)
+        {
+                nxt[R[i]] = R[i - 1];
+        }
+        if (bad)
+                return cout << 0, 0;
+
+        for (int i = 0; i < n; ++i)
+        {
+                if (prv[a[i]] && ~lst[prv[a[i]]])
+                        le.link(i, lst[prv[a[i]]]);
+                lst[a[i]] = i;
+        }
+        memset(lst, -1, sizeof lst);
+        for (int i = n - 1; ~i; --i)
+        {
+                if (nxt[a[i]] && ~lst[nxt[a[i]]])
+                {
+                        ri.link(i, lst[nxt[a[i]]]);
+                }
+                lst[a[i]] = i;
+        }
+        vector<int> ans;
+
+        for (int i = 0; i < n; ++i)
+        {
+                if (a[i] == L[l - 1])
+                {
+                        int x = le.find(i);
+                        int y = ri.find(i);
+                        if (a[x] == L[0] && a[y] == R[0])
+                        {
+                                if (suff[y + 1] < x)
+                                {
+                                        ans.push_back(i + 1);
+                                }
+                        }
+                }
+        }
+        cout << (int)ans.size() << "\n";
+        for (auto u : ans)
+                cout << u << " ";
+        return 0;
+}
