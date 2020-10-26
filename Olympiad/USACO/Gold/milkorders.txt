@@ -1,0 +1,139 @@
+#include <bits/stdc++.h>
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 2e5 + 7, mod = 1e9 + 7;
+const int inf = N;
+// How interesting!
+
+int n, m;
+vector<vector<int>> all;
+vector<int> adj[N];
+vector<int> ord;
+int vis[N], c;
+bool bad = 0;
+int act[N];
+
+void dfs(int x)
+{
+        vis[x] = c;
+        act[x] = 1;
+        for (auto u : adj[x])
+        {
+                if (vis[u] && act[u])
+                        bad = 1;
+                if (vis[u] != c)
+                        dfs(u);
+        }
+        act[x] = 0;
+        ord.push_back(x);
+}
+
+bool check(int mid)
+{
+        ++c;
+        bad = 0;
+        ord.clear();
+        for (int i = 1; i <= n; ++i)
+        {
+                adj[i].clear();
+        }
+        for (int i = 0; i < mid; ++i)
+        {
+                for (int j = 1; j < (int)all[i].size(); ++j)
+                        adj[all[i][j - 1]].push_back(all[i][j]);
+        }
+        for (int i = 1; i <= n; ++i)
+        {
+                if (vis[i] != c)
+                        dfs(i);
+        }
+        return !bad;
+}
+int ind[N];
+void answer(int x)
+{
+        for (int i = 1; i <= n; ++i)
+        {
+                adj[i].clear();
+        }
+        for (int i = 0; i < x; ++i)
+        {
+                for (int j = 1; j < (int)all[i].size(); ++j)
+                {
+                        ind[all[i][j]]++;
+                        adj[all[i][j - 1]].push_back(all[i][j]);
+                }
+        }
+        ord.clear();
+        priority_queue<int> q;
+        for (int i = 1; i <= n; ++i)
+        {
+                if (!ind[i])
+                        q.push(-i);
+        }
+        ++c;
+        while (q.size())
+        {
+                int tp = -q.top();
+                q.pop();
+                ord.push_back(tp);
+                vis[tp] = c;
+                for (auto u : adj[tp])
+                {
+                        if (!--ind[u] && vis[u] != c)
+                                q.push(-u);
+                }
+        }
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+
+        freopen("milkorder.in", "r", stdin);
+        freopen("milkorder.out", "w", stdout);
+        cin >> n >> m;
+        for (int i = 0; i < m; ++i)
+        {
+                int x;
+                cin >> x;
+                vector<int> vec;
+                for (int i = 0; i < x; ++i)
+                {
+                        int y;
+                        cin >> y;
+                        vec.push_back(y);
+                }
+                all.push_back(vec);
+        }
+        int l = 0, r = m;
+        int ans = 0;
+        while (l <= r)
+        {
+                int mid = (l + r) >> 1;
+                if (check(mid))
+                {
+                        ans = mid;
+                        l = mid + 1;
+                }
+                else
+                        r = mid - 1;
+        }
+        answer(ans);
+        for (int i = 0 ;i < n; ++i){
+                cout<< ord[i] ; 
+                if(i < n -1 )cout<<' ' ;
+        }
+        return 0;
+}
