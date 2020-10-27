@@ -1,0 +1,136 @@
+#include <bits/stdc++.h>
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+
+using ll = long long;
+using ld = long double;
+
+const int N = 4e5 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+
+// How interesting!
+
+int n;
+int a[N];
+map<int, int> nw;
+vector<int> com;
+vector<int> pos[N];
+
+struct ordered_set
+{
+        int bit[N];
+        int sz = 0;
+        ordered_set()
+        {
+                memset(bit, 0, sizeof bit);
+        }
+        void insert(int x, int d = 1)
+        {
+                sz += d;
+                x++;
+                for (; x < N; x += x & -x)
+                        bit[x] += d;
+        }
+        void erase(int x)
+        {
+                insert(x, -1);
+        }
+        int size()
+        {
+                return sz;
+        }
+        int find_by_order(int x)
+        {
+                int pos = 0;
+                int val = 0;
+                for (int i = 20; ~i; --i)
+                {
+                        if (pos + (1 << i) >= N)
+                                continue;
+                        if (val + bit[pos + (1 << i)] < x)
+                        {
+                                val += bit[pos + (1 << i)];
+                                pos += (1 << i);
+                        }
+                }
+                return pos;
+        }
+};
+
+bool check(int mid)
+{
+        ordered_set blk, whi;
+        for (int i = 0; i < n; ++i)
+                blk.insert(i);
+        for (int j = 1; j <= n; ++j)
+        {
+                int le = mid / 2;
+                int ri = (mid + 1) / 2;
+                int p1 = n, p2 = -1;
+                if (blk.size() >= ri + 1)
+                        p1 = blk.find_by_order(ri + 1);
+                if (whi.size() >= le + 1)
+                        p2 = (whi.find_by_order(whi.size() - le));
+                if (p1 < p2)
+                        return 0;
+                for (auto u : pos[j])
+                {
+                        blk.erase(u);
+                        whi.insert(u);
+                }
+        }
+        return 1;
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        freopen("sort.in", "r", stdin);
+        freopen("sort.out", "w", stdout);
+        cin >> n;
+        for (int i = 0; i < n; ++i)
+        {
+                a[i] = i + 1;
+                cin >> a[i];
+                com.push_back(a[i]);
+        }
+        sort(com.begin(), com.end());
+        com.erase(unique(com.begin(), com.end()), com.end());
+        for (int i = 0; i < (int)com.size(); ++i)
+                nw[com[i]] = i + 1;
+        for (int i = 0; i < n; ++i)
+                a[i] = nw[a[i]];
+
+        for (int i = 0; i < n; ++i)
+                pos[a[i]].push_back(i);
+
+        int lo = 2, hi = n * 2;
+        int ans = 1;
+        while (lo <= hi)
+        {
+                int mid = (lo + hi) >> 1;
+                if (check(mid))
+                        hi = mid - 1,
+                        ans = mid;
+                else
+                        lo = mid + 1;
+        }
+        cout << (++ans) / 2;
+        return 0;
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
