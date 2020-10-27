@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 5e4 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+
+// How interesting!
+
+int n;
+vector<pair<ll, ll>> v;
+
+pair<ll, ll> prefx[N], suffx[N];
+pair<ll, ll> prefy[N], suffy[N];
+
+ll calc(pair<ll, ll> d1, pair<ll, ll> d2)
+{
+        return 1ll * (d1.first - d1.second) * (d2.first - d2.second);
+}
+
+ll solve()
+{
+        ll ret = 4e18;
+        prefx[0] = {v[0].first, v[0].first};
+        prefy[0] = {v[0].second, v[0].second};
+
+        suffx[n - 1] = {v[n - 1].first, v[n - 1].first};
+        suffy[n - 1] = {v[n - 1].second, v[n - 1].second};
+
+        for (int i = 1; i < n; ++i)
+        {
+                prefx[i] = {max(v[i].first, prefx[i - 1].first), min(v[i].first, prefx[i - 1].second)};
+                prefy[i] = {max(v[i].second, prefy[i - 1].first), min(v[i].second, prefy[i - 1].second)};
+        }
+        for (int i = n - 2; ~i; --i)
+        {
+                suffx[i] = {max(v[i].first, suffx[i + 1].first), min(v[i].first, suffx[i + 1].second)};
+                suffy[i] = {max(v[i].second, suffy[i + 1].first), min(v[i].second, suffy[i + 1].second)};
+        }
+        for (int i = 0; i < n - 1; ++i)
+                if (v[i].first < v[i + 1].first)
+                        ret = min(ret, calc(prefx[i], prefy[i]) + calc(suffx[i + 1], suffy[i + 1]));
+        return ret;
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        freopen("split.in", "r", stdin);
+        freopen("split.out", "w", stdout);
+        cin >> n;
+        ll mx = 1e10, Mx = 0, my = 1e10, My = 0;
+        for (int i = 0; i < n; ++i)
+        {
+                ll x, y;
+                cin >> x >> y;
+                v.push_back({x, y});
+
+                Mx = max(Mx, x);
+                mx = min(mx, x);
+                My = max(My, y);
+                my = min(my, y);
+        }
+        sort(v.begin(), v.end());
+        ll big = 0, small = inf;
+        big = 1ll * (Mx - mx) * (My - my);
+
+        small = min(small, solve());
+        for (auto &u : v)
+                swap(u.first, u.second);
+        sort(v.begin(), v.end());
+        small = min(small, solve());
+        if (small == inf)
+                small = 0;
+        cout << big - small;
+        return 0;
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
