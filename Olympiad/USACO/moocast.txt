@@ -1,0 +1,85 @@
+#include <bits/stdc++.h>
+
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 2e5 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+
+// How interesting!
+
+int n;
+int x[N], y[N];
+ll ans;
+vector<pair<ll, pii>> v;
+
+int fat[N];
+
+int find(int x)
+{
+        return fat[x] = (x == fat[x] ? x : find(fat[x]));
+}
+
+void link(int u, int v)
+{
+        u = find(u);
+        v = find(v);
+        if (fat[u] != v)
+        {
+                fat[u] = v;
+        }
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        freopen("moocast.in", "r", stdin);
+        freopen("moocast.out", "w", stdout);
+        cin >> n;
+        for (int i = 0; i < n; ++i)
+                fat[i] = i;
+        for (int i = 0; i < n; ++i)
+        {
+                cin >> x[i] >> y[i];
+                for (int j = 0; j < i; ++j)
+                {
+                        ll dx = x[i] - x[j];
+                        ll dy = y[i] - y[j];
+                        ll c = 1ll * dx * dx + 1ll * dy * dy;
+                        v.push_back({c, {i, j}});
+                }
+        }
+        sort(v.begin(), v.end());
+
+        for (auto u : v)
+        {
+                int a = u.second.first;
+                int b = u.second.second;
+                if (find(a) != find(b))
+                {
+                        ans = max(ans, u.first);
+                        link(a, b);
+                }
+        }
+        cout << ans;
+        return 0;
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
