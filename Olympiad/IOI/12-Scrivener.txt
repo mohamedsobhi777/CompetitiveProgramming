@@ -1,0 +1,47 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1e6 + 7;
+char last;
+void Init() {}
+
+int cnt, cur = 0;
+vector<int> hist = {0};
+int chs[N];
+int val[N];
+int up[N][20];
+
+void TypeLetter(char L)
+{
+        L -= 'a';
+        ++ cnt ; 
+        hist.push_back(cnt);
+        val[cnt] = val[cur] + 1;
+        chs[cnt] = L;
+
+        up[cnt][0] = cur;
+        for (int i = 1; i < 20; ++i)
+                up[cnt][i] = up[up[cnt][i - 1]][i - 1];
+
+        cur = cnt;
+}
+
+void UndoCommands(int U)
+{
+        cur = hist[hist.size() - U - 1];
+        hist.push_back(cur);
+}
+
+char GetLetter(int P)
+{
+        P++;
+        int now = cur;
+        for(int i = 19 ;~ i ; -- i){
+                if(val[up[now][i]] > P)
+                        now = up[now][i] ;
+        }
+        if(val[now] > P)now = up[now][0] ;
+        return char(chs[now] + 'a');
+}
+
