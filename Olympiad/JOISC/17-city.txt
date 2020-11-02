@@ -1,0 +1,108 @@
+// Encoder
+
+#include <bits/stdc++.h>
+#include "Encoder.h"
+
+const int MAX = 5e5;
+using namespace std;
+
+vector<int> adj[MAX], seq;
+long long st[MAX], en[MAX], T;
+const int L = 250000 + 1;
+const double app = 1.0556451;
+
+void build()
+{
+        seq.push_back(0);
+        for (int i = 0; i < 256; ++i)
+        {
+                int x = seq.back();
+                x = x * app;
+                if (x == seq.back())
+                        ++x;
+                seq.push_back(x);
+        }
+}
+
+void dfs(int x, int p)
+{
+        st[x] = ++T;
+        for (auto u : adj[x])
+        {
+                if (u == p)
+                        continue;
+                dfs(u, x);
+        }
+
+        int lo = 0, hi = (int)seq.size(), ans = 0;
+        while (lo <= hi)
+        {
+                int mid = (lo + hi) >> 1;
+                if (st[x] + seq[mid] >= T)
+                        ans = mid, hi = mid - 1;
+                else
+                        lo = mid + 1;
+        }
+        T = st[x] + seq[ans];
+        long long a = st[x] - 1, b = ans;
+        Code(x, a + (1ll << 20) * b);
+}
+
+void Encode(int N, int A[], int B[])
+{
+        build();
+        for (int i = 0; i < N - 1; ++i)
+        {
+                adj[A[i]].push_back(B[i]);
+                adj[B[i]].push_back(A[i]);
+        }
+        dfs(0, 0);
+}
+
+//Device 
+
+#include <bits/stdc++.h>
+#include "Device.h"
+
+using namespace std ; 
+vector<int> seq;
+const int L = 250000 + 1;
+const double app = 1.0556451;
+
+void build()
+{
+        seq.push_back(0);
+        for (int i = 0; i < 256; ++i)
+        {
+                int x = seq.back();
+                x = x * app;
+                if (x == seq.back())
+                        ++x;
+                seq.push_back(x);
+        }
+}
+
+void InitDevice()
+{
+        build();
+}
+
+void adjust(long long x, long long &a, long long &b)
+{
+        a = x & ((1 << 20) - 1);
+        x /= (1 << 20);
+        b = a + seq[x];
+}
+
+int Answer(long long S, long long T)
+{
+        long long s1, t1;
+        long long s2, t2;
+        adjust(S, s1, t1);
+        adjust(T, s2, t2);
+        if (s2 >= s1 && t2 <= t1)
+                return 1;
+        if (s1 >= s2 && t1 <= t2)
+                return 0;
+        return 2;
+}
