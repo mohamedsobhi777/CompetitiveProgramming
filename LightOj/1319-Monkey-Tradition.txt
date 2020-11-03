@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+
+/*
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")*/
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 1e5 + 7, mod = 1e9 + 7;
+const int inf = N;
+// How interesting!
+
+long long GCD(long long a, long long b) { return (b == 0) ? a : GCD(b, a % b); }
+inline long long LCM(long long a, long long b) { return a / GCD(a, b) * b; }
+inline long long normalize(long long x, long long mod)
+{
+        x %= mod;
+        if (x < 0)
+                x += mod;
+        return x;
+}
+struct GCD_type
+{
+        long long x, y, d;
+};
+GCD_type ex_GCD(long long a, long long b)
+{
+        if (b == 0)
+                return {1, 0, a};
+        GCD_type pom = ex_GCD(b, a % b);
+        return {pom.y, pom.x - a / b * pom.y, pom.d};
+}
+int testCases;
+int t;
+long long a[N], n[N], ans, Lcm;
+
+int main()
+{
+
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        int T;
+        cin >> T;
+        for (int tc = 1; tc <= T; ++tc)
+        {
+                cin >> t;
+                for (int i = 1; i <= t; i++)
+                        cin >> n[i] >> a[i], normalize(a[i], n[i]);
+                ans = a[1];
+                Lcm = n[1];
+                bool ok = 1;
+                for (int i = 2; i <= t; i++)
+                {
+                        auto pom = ex_GCD(Lcm, n[i]);
+                        int x1 = pom.x;
+                        int d = pom.d;
+                        if ((a[i] - ans) % d != 0)
+                        {
+                                ok = 0;
+                                cout << "Impossible\n";
+                                break;
+                        }
+                        ans = normalize(ans + x1 * (a[i] - ans) / d % (n[i] / d) * Lcm, Lcm * n[i] / d);
+                        Lcm = LCM(Lcm, n[i]);
+                }
+                if (ok)
+                        cout << "Case " << tc << ": " << ans << endl;
+        }
+
+        return 0;
+}
