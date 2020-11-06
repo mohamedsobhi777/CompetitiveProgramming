@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 2e5 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+
+// How interesting!
+
+int n, k;
+vector<int> adj[N];
+int nearst[N], hei[N];
+
+int dfz(int x, int p)
+{
+        hei[x] = hei[p] + 1;
+        nearst[x] = N;
+        for (auto u : adj[x])
+        {
+                if (u == p)
+                        continue;
+                dfz(u, x);
+                nearst[x] = min(nearst[x], nearst[u] + 1);
+        }
+        if (nearst[x] == N)
+                nearst[x] = 0;
+        return 0;
+}
+
+int dfs(int x, int p)
+{
+        int th = hei[x] - 1;
+        int oth = nearst[x];
+        if (oth <= th)
+                return 1;
+        int ret = 0;
+        for (auto u : adj[x])
+        {
+                if (u == p)
+                        continue;
+                ret += dfs(u, x);
+        }
+        return ret;
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        //freopen("in.in", "r", stdin);
+        freopen("atlarge.in", "r", stdin);
+        freopen("atlarge.out", "w", stdout);
+        cin >> n >> k;
+        for (int i = 0; i < n - 1; ++i)
+        {
+                int u, v;
+                cin >> u >> v;
+                adj[u].push_back(v);
+                adj[v].push_back(u);
+        }
+        dfz(k, k);
+        cout << dfs(k, k);
+        return 0;
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
