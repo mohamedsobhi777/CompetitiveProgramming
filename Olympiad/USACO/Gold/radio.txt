@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 1e3 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+
+// How interesting!
+
+int n, m;
+int jx, jy;
+int bx, by;
+string p1, p2;
+int jX[N], jY[N];
+int bX[N], bY[N];
+ll dp[N][N];
+
+ll dist(int x, int y)
+{
+        int a1 = jx + jX[x];
+        int b1 = jy + jY[x];
+        int a2 = bx + bX[y];
+        int b2 = by + bY[y];
+        return 1ll * (a1 - a2) * (a1 - a2) + 1ll * (b1 - b2) * (b1 - b2);
+}
+
+ll solve(int x, int y)
+{
+        if (x == 0 && y == 0)
+                return 0;
+        if (~dp[x][y])
+                return dp[x][y];
+        ll ret = inf;
+        if (x && y)
+                ret = min(ret, solve(x - 1, y - 1) + dist(n - x + 1, m - y + 1));
+        if (x)
+                ret = min(ret, solve(x - 1, y) + dist(n - x + 1, m - y));
+        if (y)
+                ret = min(ret, solve(x, y - 1) + dist(n - x, m - y + 1));
+        return dp[x][y] = ret;
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        freopen("radio.in", "r", stdin);
+        freopen("radio.out", "w", stdout);
+        memset(dp, -1, sizeof dp);
+        cin >> n >> m;
+        cin >> jx >> jy;
+        cin >> bx >> by;
+        cin >> p1 >> p2;
+        for (int i = 1; i <= n; ++i)
+        {
+                jX[i] = jX[i - 1];
+                jY[i] = jY[i - 1];
+
+                if (p1[i - 1] == 'N')
+                        jY[i]++;
+                else if (p1[i - 1] == 'S')
+                        jY[i]--;
+                else if (p1[i - 1] == 'E')
+                        jX[i]++;
+                else
+                        jX[i]--;
+        }
+        for (int i = 1; i <= m; ++i)
+        {
+                bX[i] = bX[i - 1];
+                bY[i] = bY[i - 1];
+
+                if (p2[i - 1] == 'N')
+                        bY[i]++;
+                else if (p2[i - 1] == 'S')
+                        bY[i]--;
+                else if (p2[i - 1] == 'E')
+                        bX[i]++;
+                else
+                        bX[i]--;
+        }
+        cout << solve(n, m);
+        return 0;
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
