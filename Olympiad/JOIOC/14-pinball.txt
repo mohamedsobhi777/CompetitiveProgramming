@@ -1,0 +1,138 @@
+#include <bits/stdc++.h>
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 4e5 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+
+// How interesting!
+
+int n, m;
+map<int, int> mp;
+ll cl[N], cr[N];
+vector<int> ord;
+
+struct dev
+{
+        ll l, md, r, c;
+        dev() {}
+        dev(int _l, int _md, int _r, int _c)
+        {
+                l = _l;
+                md = _md;
+                r = _r;
+                c = _c;
+        }
+};
+vector<dev> v;
+
+struct segtree
+{
+        ll tree[4 * N];
+        segtree()
+        {
+                fill(tree, tree + 4 * N, inf);
+        }
+        void update(int node, int L, int R, int ix, ll val)
+        {
+                if (L == R)
+                {
+                        tree[node] = min(tree[node], val);
+                        return;
+                }
+                int mid = (L + R) >> 1;
+                if (ix <= mid)
+                        update(node * 2 + 1, L, mid, ix, val);
+                else
+                        update(node * 2 + 2, mid + 1, R, ix, val);
+                tree[node] = min(tree[node * 2 + 1], tree[node * 2 + 2]);
+        }
+
+        ll query(int node, int L, int R, int l, int r)
+        {
+                if (l > R || r < L)
+                        return inf;
+                if (L >= l && R <= r)
+                        return tree[node];
+                int mid = (L + R) >> 1;
+                ll s1 = query(node * 2 + 1, L, mid, l, r);
+                ll s2 = query(node * 2 + 2, mid + 1, R, l, r);
+                return min(s1, s2);
+        }
+        inline ll query(int l, int r) { return query(0, 1, N, l, r); }
+        inline void upd(int pos, ll val) { update(0, 1, N, pos, val); }
+} s[2];
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+
+        //freopen("in.in", "r", stdin);
+        cin >> n >> m;
+        for (int i = 1; i <= n; ++i)
+        {
+                int a, b, c, d;
+                cin >> a >> b >> c >> d;
+                v.push_back(dev(a, c, b, d));
+                ord.push_back(a);
+                ord.push_back(b);
+                ord.push_back(c);
+        }
+        sort(ord.begin(), ord.end());
+        ord.erase(unique(ord.begin(), ord.end()), ord.end());
+
+        for (int i = 0; i < (int)ord.size(); ++i)
+        {
+                mp[ord[i]] = i + 1;
+        }
+        for (int i = 0; i < n; ++i)
+        {
+                v[i].l = mp[v[i].l];
+                v[i].r = mp[v[i].r];
+                v[i].md = mp[v[i].md];
+        }
+
+        for (int i = 0; i < n; ++i)
+        {
+                cl[i] = (v[i].l == mp[1] ? 0 : s[0].query(v[i].l, v[i].r)) + v[i].c;
+                cr[i] = (v[i].r == mp[m] ? 0 : s[1].query(v[i].l, v[i].r)) + v[i].c;
+                s[0].upd(v[i].md, cl[i]);
+                s[1].upd(v[i].md, cr[i]);
+        }
+
+        ll ans = inf;
+        for (int i = 0; i < n; ++i)
+        {
+                ans = min(ans, cl[i] + cr[i] - v[i].c);
+        }
+        if (ans == inf)
+                cout << -1;
+        else
+                cout << ans;
+        return 0;
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
