@@ -1,0 +1,249 @@
+#include <bits/stdc++.h>
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 1e5 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+
+// How interesting!
+
+int n, k;
+
+template <typename segt = int>
+struct segtree
+{
+        segtree() {}
+        int s = 0;
+        int tree[4 * N];
+        segt sentinel = 0;
+        inline segt combine(segt lhs, segt rhs) { return lhs ^ rhs; }
+        void init(int sz)
+        {
+                s = sz;
+                memset(tree, 0, sizeof tree);
+        }
+        void update(int node, int L, int R, int ix, segt val)
+        {
+                if (L == R)
+                        return void(tree[node] = val);
+                int mid = (L + R) >> 1;
+                if (ix <= mid)
+                        update(node * 2 + 1, L, mid, ix, val);
+                else
+                        update(node * 2 + 2, mid + 1, R, ix, val);
+                tree[node] = combine(tree[node * 2 + 1], tree[node * 2 + 2]);
+        }
+        segt query(int node, int L, int R, int l, int r)
+        {
+                if (l > r || l > R || r < L)
+                        return sentinel;
+                if (L >= l && R <= r)
+                        return tree[node];
+                int mid = (L + R) >> 1;
+                segt s1 = query(node * 2 + 1, L, mid, l, r);
+                segt s2 = query(node * 2 + 2, mid + 1, R, l, r);
+                return combine(s1, s2);
+        }
+        inline void upd(int ix, segt val) { update(0, 1, N, ix, val); }
+        inline segt qry(int l, int r) { return query(0, 1, N, l, r); }
+};
+
+int up[N][20];
+int chain[N], big[N], sz[N], depth[N], label[N];
+int a[N];
+
+template <typename segt = long long>
+struct hld
+{
+        int s, tim = 0, lbl = 0;
+        int st[N], en[N], t;
+        segt tree[4 * N], lazy[4 * N];
+        vector<int> g[N];
+        segtree<segt> seg;
+
+        inline bool upper(int u, int v) { return st[v] >= st[u] && en[v] <= en[u]; }
+        int lca(int u, int v)
+        {
+                if (upper(u, v))
+                        return u;
+                if (upper(v, u))
+                        return v;
+                for (int i = 19; ~i; --i)
+                {
+                        if (!upper(up[u][i], v))
+                                u = up[u][i];
+                }
+                return up[u][0];
+        }
+
+        int getk(int x, int k)
+        {
+                for (int i = 19; ~i; --i)
+                {
+                        if (k & (1 << i))
+                        {
+                                x = up[x][i];
+                        }
+                }
+                return x;
+        }
+
+        void init_arrays(int _n)
+        {
+                s = _n;
+                for (int i = 0; i <= s; ++i)
+                        chain[i] = i, g[i].clear();
+                seg.init(_n);
+        }
+        inline void edge(int u, int v)
+        {
+                g[u].push_back(v);
+                g[v].push_back(u);
+        }
+        void init_tree(int root = 1)
+        {
+                dfz(1, 1);
+                dfc(1, 1);
+                tim = 0;
+                t = 0;
+                dfl(1, 1);
+        }
+
+        void dfz(int x, int p)
+        {
+                st[x] = ++t;
+                sz[x] = 1;
+                depth[x] = depth[p] + 1;
+                int bigc = 0;
+                up[x][0] = p;
+                for (int i = 1; i < 20; ++i)
+                        up[x][i] = up[up[x][i - 1]][i - 1];
+                for (auto u : g[x])
+                {
+                        if (u == p)
+                                continue;
+                        dfz(u, x);
+                        sz[x] += sz[u];
+                        if (sz[u] > sz[bigc])
+                                bigc = u;
+                }
+                big[x] = bigc;
+                en[x] = ++t;
+        }
+
+        void dfc(int x, int p)
+        {
+                if (big[x])
+                        chain[big[x]] = chain[x];
+                for (auto u : g[x])
+                {
+                        if (u != p)
+                                dfc(u, x);
+                }
+        }
+
+        void dfl(int x, int p)
+        {
+                label[x] = ++lbl;
+                seg.upd(label[x], a[x]);
+                if (big[x])
+                        dfl(big[x], x);
+                for (auto u : g[x])
+                {
+                        if (u != p && u != big[x])
+                                dfl(u, x);
+                }
+        }
+
+        segt query_chain(int u, int v)
+        {
+                segt ret = seg.sentinel;
+                while (depth[v] < depth[u])
+                {
+                        int top = chain[u];
+                        if (depth[top] <= depth[v])
+                                top = getk(u, depth[u] - depth[v] - 1);
+
+                        ret = (ret ^ seg.qry(label[top], label[u]));
+                        u = up[top][0];
+                }
+                return ret;
+        }
+
+        segt query(int u, int v)
+        {
+
+                int c = lca(u, v);
+                segt ret = seg.combine(query_chain(u, c), query_chain(v, c));
+                return seg.combine(ret, a[c]);
+        }
+
+        void update(int u, segt val)
+        {
+                a[u] = val;
+                seg.upd(label[u], val);
+        }
+};
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        freopen("cowland.in", "r", stdin);
+        freopen("cowland.out", "w", stdout);
+        //freopen("in.in", "r", stdin);
+        cin >> n >> k;
+        hld<int> hd;
+
+        for (int i = 1; i <= n; ++i)
+        {
+                cin >> a[i];
+        }
+        hd.init_arrays(n);
+
+        for (int i = 0; i < n - 1; ++i)
+        {
+                int u, v;
+                cin >> u >> v;
+                hd.edge(u, v);
+        }
+        hd.init_tree();
+        for (int i = 0; i < k; ++i)
+        {
+                int u, v, c;
+                cin >> u >> v >> c;
+                if (u == 1)
+                {
+                        hd.update(v, c);
+                }
+                else
+                {
+                        cout << hd.query(v, c) << "\n";
+                }
+        }
+        return 0;
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
