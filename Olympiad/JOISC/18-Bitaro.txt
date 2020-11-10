@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 1e5 + 7, mod = 1e9 + 7;
+const int inf = N;
+// How interesting!
+const int rot = 100;
+
+int n, m, q;
+int dp1[N], bad[N];
+vector<int> adj[N];
+vector<pair<int, int>> dp2[N];
+int vis[N];
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+
+        //freopen("in.in", "r", stdin);
+        cin >> n >> m >> q;
+        for (int i = 0; i < m; ++i)
+        {
+                int u, v;
+                cin >> u >> v;
+                adj[v].push_back(u);
+        }
+
+        for (int i = 1; i <= n; ++i)
+        {
+                vector<int> pd = {i};
+                for (auto u : adj[i])
+                {
+                        for (auto j : dp2[u])
+                        {
+                                if (!vis[j.first])
+                                {
+                                        pd.push_back(j.first);
+                                }
+                                vis[j.first] = max(vis[j.first], j.second + 1);
+                        }
+                }
+                nth_element(pd.begin(), pd.begin() + min(rot, (int)pd.size()), pd.end(), [&](int a, int b) {
+                        return vis[a] > vis[b];
+                });
+                for (int j = 0; j < min(rot, (int)pd.size()); ++j)
+                {
+                        dp2[i].push_back({pd[j], vis[pd[j]]});
+                }
+                for (auto u : pd)
+                        vis[u] = 0;
+        }
+
+        for (int i = 0; i < q; ++i)
+        {
+                int x, t;
+                cin >> x >> t;
+                vector<int> vec;
+                for (int j = 0; j < t; ++j)
+                {
+                        int y;
+                        cin >> y;
+                        vec.push_back(y);
+                        bad[y] = 1;
+                }
+                if (t < rot)
+                {
+                        int ans = -1;
+                        for (auto u : dp2[x])
+                        {
+                                if (!bad[u.first])
+                                        ans = max(ans, u.second);
+                        }
+                        cout << ans << "\n";
+                }
+                else
+                {
+                        for (int j = 1; j <= n; ++j)
+                                dp1[j] = (bad[j] ? -n : 0);
+                        for (int j = 1; j <= n; ++j)
+                                for (auto u : adj[j])
+                                        dp1[j] = max(dp1[j], dp1[u] + 1);
+                        cout << max(-1, dp1[x]) << "\n";
+                }
+
+                for (auto u : vec)
+                {
+                        bad[u] = 0;
+                }
+        }
+        return 0;
+}
