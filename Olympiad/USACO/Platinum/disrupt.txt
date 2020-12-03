@@ -1,0 +1,120 @@
+#include <bits/stdc++.h>
+
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+#define loop(_) for (int __ = 0; __ < (_); ++__)
+#define forn(i, n) for (int i = 0; i < n; ++i)
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 5e5 + 7;
+const ll mod = 1e9 + 7;
+const ll inf = 2e18;
+
+auto ra = [] {char *p = new char ; delete p ; return ll(p) ; };
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count() * (ra() | 1));
+
+int n, k;
+vector<pii> adj[N];
+int up[N][20];
+int st[N], en[N], t;
+int ans[N], rep[N];
+
+void dfs(int x, int p)
+{
+        st[x] = ++t;
+        up[x][0] = p;
+        for (int i = 1; i < 20; ++i)
+                up[x][i] = up[up[x][i - 1]][i - 1];
+        for (auto u : adj[x])
+        {
+                if (u.first == p)
+                        continue;
+                rep[u.first] = u.second;
+                dfs(u.first, x);
+        }
+        en[x] = ++t;
+}
+
+inline bool upper(int u, int v)
+{
+        return st[u] <= st[v] && en[u] >= en[v];
+}
+
+int lca(int u, int v)
+{
+        if (upper(u, v))
+                return u;
+        if (upper(v, u))
+                return v;
+        for (int i = 19; ~i; --i)
+                if (!upper(up[u][i], v))
+                        u = up[u][i];
+        return up[u][0];
+}
+
+struct dsu
+{
+        int fat[N];
+        dsu()
+        {
+                iota(fat, fat + N, 0);
+        }
+        inline int find(int x) { return fat[x] = (x == fat[x] ? x : find(fat[x])); }
+        void link(int u, int v)
+        {
+                u = find(u);
+                v = find(v);
+                if (u != v)
+                {
+                        fat[u] = v;
+                }
+        }
+} d;
+
+void mmax(int a, int c, int x)
+{
+        while (a != c && upper(c, a))
+        {
+                ans[rep[a]] = (~ans[rep[a]] ? min(x, ans[rep[a]]) : x);
+                d.link(a, up[a][0]);
+                a = d.find(a);
+        }
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        freopen("disrupt.in", "r", stdin);
+        freopen("disrupt.out", "w", stdout);
+
+        memset(ans, -1, sizeof ans);
+        cin >> n >> k;
+        for (int i = 0; i < n - 1; ++i)
+        {
+                int u, v;
+                cin >> u >> v;
+                adj[u].push_back({v, i});
+                adj[v].push_back({u, i});
+        }
+        dfs(1, 1);
+        vector<array<int, 3>> v(k);
+        for (auto &u : v)
+                cin >> u[1] >> u[2] >> u[0];
+        sort(v.begin(), v.end());
+        for (int i = 0; i < k; ++i)
+        {
+                int a = v[i][1], b = v[i][2];
+                int c = lca(a, b);
+                mmax(a, c, v[i][0]);
+                mmax(b, c, v[i][0]);
+        }
+        for (int i = 0; i < n - 1; ++i)
+                cout << ans[i] << "\n";
+        return 0;
+}
