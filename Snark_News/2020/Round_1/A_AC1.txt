@@ -1,0 +1,180 @@
+#include <bits/stdc++.h>
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 1e5 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+
+// How interesting!
+const int MXN = 20 + 1;
+int n, m, sz;
+int f[MXN + 1];
+vector<int> lazy[4 * N];
+vector<int> sen;
+
+struct node
+{
+        vector<int> cnt;
+        bool flag = 0;
+        node()
+        {
+                cnt.resize(MXN, 0);
+                cnt[0] = 1;
+        }
+} tree[4 * N];
+
+void apply(int cur, vector<int> &v)
+{
+        vector<int> cnt(MXN, 0);
+        for (int i = 0; i < (int)v.size(); ++i)
+                cnt[v[i]] += tree[cur].cnt[i];
+        tree[cur].cnt = cnt;
+}
+
+void push(int cur)
+{
+        apply(cur, lazy[cur]);
+        if (cur * 2 + 1 < 4 * n && tree[cur].flag)
+        {
+                tree[cur * 2].flag = tree[cur * 2 + 1].flag = 1;
+                for (int i = 0; i < lazy[cur].size(); ++i)
+                {
+                        lazy[cur << 1][i] = lazy[cur][lazy[cur << 1][i]];
+                        lazy[cur << 1 | 1][i] = lazy[cur][lazy[cur << 1 | 1][i]];
+                }
+        }
+        tree[cur].flag = 0;
+        lazy[cur] = sen;
+}
+
+node comb(int lhs, int rhs)
+{
+        node &nls = tree[lhs];
+        node &nrs = tree[rhs];
+        node ret;
+        ret.flag = 0;
+        for (int i = 0; i <= sz; ++i)
+                ret.cnt[i] = nls.cnt[i] + nrs.cnt[i];
+        return ret;
+}
+
+void update(int cur, int L, int R, int l, int r, vector<int> &cor)
+{
+        push(cur);
+        if (l >= r)
+                return;
+
+        if (l == L && r == R)
+        {
+                lazy[cur] = cor;
+                tree[cur].flag = 1;
+                push(cur);
+                return void(push(cur));
+        }
+        int mi = (L + R) >> 1;
+
+        update(cur * 2, L, mi, l, min(r, mi), cor);
+        update(cur * 2 + 1, mi, R, max(mi, l), r, cor);
+        tree[cur] = comb(cur * 2, cur * 2 + 1);
+}
+
+int query(int cur, int L, int R, int l, int r, int c = 0)
+{
+        push(cur);
+        if (l >= r)
+                return 0;
+        if (l == L && r == R)
+                return tree[cur].cnt[c];
+        int mi = (L + R) >> 1;
+        int s1 = query(cur * 2, L, mi, l, min(r, mi), c);
+        int s2 = query(cur * 2 + 1, mi, R, max(mi, l), r, c);
+        return s1 + s2;
+}
+
+void build(int cur, int l, int r)
+{
+        if (l == r - 1)
+                return;
+        int mi = (l + r) >> 1;
+        build(cur << 1, l, mi);
+        build(cur << 1 | 1, mi, r);
+        tree[cur] = comb(cur << 1, cur << 1 | 1);
+}
+
+void kmp(string s)
+{
+        s += '$';
+        int j = 0;
+        for (int i = 1; i < (int)s.size(); ++i)
+        {
+                while (j && s[i] != s[j])
+                        j = f[j - 1];
+                if (s[i] == s[j])
+                        ++j;
+                f[i] = j;
+        }
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        //freopen("in.in", "r", stdin);
+        string s;
+        cin >> s;
+        sz = (int)s.size();
+        cin >> n >> m;
+        sen.resize(MXN);
+        iota(sen.begin(), sen.end(), 0);
+        for (int i = 0; i <= 4 * n; ++i)
+                lazy[i] = sen;
+        kmp(s);
+        s += '$';
+        build(1, 0, n);
+        for (int i = 0; i < m; ++i)
+        {
+                int t, l, r;
+                cin >> t >> l >> r;
+                if (t == 1)
+                {
+                        string x;
+                        cin >> x;
+                        int xz = (int)x.size();
+                        vector<int> ch;
+                        for (int j = 0; j <= sz; ++j)
+                        {
+                                int fail = j;
+                                for (int k = 0; k < xz; ++k)
+                                {
+                                        while (fail && s[fail] != x[k])
+                                                fail = f[fail - 1];
+                                        if (s[fail] == x[k])
+                                                ++fail;
+                                }
+                                ch.push_back(fail);
+                        }
+                        update(1, 0, n, l - 1, r, ch);
+                }
+                else
+                        cout << query(1, 0, n, l - 1, r, sz) << "\n";
+        }
+        return 0;
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
