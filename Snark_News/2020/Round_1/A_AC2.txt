@@ -1,0 +1,162 @@
+#include <bits/stdc++.h>
+
+
+#define I inline void
+#define S struct
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+
+using namespace std;
+using ll = long long;
+using ld = long double;
+
+const int N = 1e6 + 7, mod = 1e9 + 7;
+const ll inf = 2e18;
+
+// How interesting!
+
+int n, m, sz;
+const int MXN = 20 + 1;
+/*
+struct node
+{
+        vector<int> cnt;
+        bool flag = 0;
+        node()
+        {
+                cnt.resize(MXN, 0);
+        }
+        void trans(vector<int> cor)
+        {
+        }
+} tree[4 * N];
+
+vector<int> lazy[4 * N];
+vector<int> sen;
+
+void push(int cur)
+{
+        if (cur * 2 + 1 < 4 * n)
+        {
+        }
+}
+
+node comb(int lhs, int rhs)
+{
+        vector<int> ret(MXN, 0);
+        for (int i = 0; i <= sz; ++i)
+        {
+        }
+}
+
+void update(int cur, int L, int R, int l, int r, vector<int> &cor)
+{
+        if (l >= r)
+                return;
+        push(cur);
+        if (l == L && r == R)
+        {
+                lazy[cur] = cor;
+                return void(push(cur));
+        }
+        int mi = (L + R) >> 1;
+        update(cur * 2, L, mi, l, min(r, mi), cor);
+        update(cur * 2 + 1, mi, R, max(mi, l), r, cor);
+        tree[cur] = comb(cur * 2, cur * 2 + 1);
+}
+
+int query(int cur, int L, int R, int l, int r)
+{
+        if (l >= r)
+                return 0;
+        push(cur);
+        if (l == L && r == R)
+        {
+                return tree[cur].cnt[sz];
+        }
+        int mi = (L + R) >> 1;
+        int s1 = query(cur * 2, L, mi, l, min(r, mi));
+        int s2 = query(cur * 2 + 1, mi, R, max(mi, l), r);
+        return s1 + s2;
+}
+*/
+int f[N],failer[N];
+
+void kmp(string s)
+{
+        s += '$';
+        int j = 0;
+        for (int i = 1; i < (int)s.size(); ++i)
+        {
+                while (j && s[i] != s[j])
+                        j = f[j - 1];
+                if (s[i] == s[j])
+                        ++j;
+                f[i] = j;
+        }
+}
+
+string ss[N] ; 
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+       // freopen("in.in", "r", stdin);
+        string s;
+        cin >> s;
+        sz = (int)s.size();
+        cin >> n >> m;
+        //sen.resize(n + 1);
+        //iota(sen.begin(), sen.end(), 0);
+
+        kmp(s);
+        s+='$' ; 
+        for (int i = 0; i < m; ++i)
+        {
+                int t, l, r;
+                cin >> t >> l >> r;
+                if (t == 1)
+                {
+                        string x;
+                        cin >> x;
+                        int xz = (int)x.size();
+                        vector<int> ch;
+                        for (int j = 0; j <= sz; ++j)
+                        {
+                                int fail = j;
+                                for (int k = 0; k < xz; ++k)
+                                {
+                                        while (fail && s[fail] != x[k])
+                                                fail = f[fail - 1];
+                                        if (s[fail] == x[k])
+                                                ++fail;
+                                }
+                                ch.push_back(fail);
+                        }
+                        for(int j = l - 1; j < r; ++ j){
+                                failer[j] = ch[failer[j]] ; 
+                        }
+                }
+                else
+                {
+                        int ret = 0;
+                        for (int j = l - 1; j < r; ++j)
+                                ret += (failer[j] == sz);
+                        cout << ret << "\n";
+                        //cout << query(1, 0, n - 1, l - 1, r - 1) << "\n";
+                }
+        }
+        return 0;
+}
+
+/*
+        - bounds sir (segtree = 4N, eulerTour = 2N, ...)
+        - a variable defined twice?
+        - will overflow?
+        - is it a good complexity?
+        - don't mess up indices (0-indexed vs 1-indexed)
+        - reset everything between testcases. 
+*/
