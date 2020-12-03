@@ -11,7 +11,7 @@ using namespace std;
 using ll = long long;
 using ld = long double;
 
-const int N = 5e5 + 7;
+const int N = 5e4 + 7;
 const ll mod = 1e9 + 7;
 const ll inf = 2e18;
 
@@ -60,20 +60,9 @@ int lca(int u, int v)
 struct dsu
 {
         int fat[N];
-        dsu()
-        {
-                iota(fat, fat + N, 0);
-        }
+        dsu() { iota(fat, fat + N, 0); }
         inline int find(int x) { return fat[x] = (x == fat[x] ? x : find(fat[x])); }
-        void link(int u, int v)
-        {
-                u = find(u);
-                v = find(v);
-                if (u != v)
-                {
-                        fat[u] = v;
-                }
-        }
+        void link(int u, int v) { fat[find(u)] = find(v); }
 } d;
 
 void mmax(int a, int c, int x)
