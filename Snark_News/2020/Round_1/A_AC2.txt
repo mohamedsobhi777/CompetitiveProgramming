@@ -19,69 +19,7 @@ const ll inf = 2e18;
 
 int n, m, sz;
 const int MXN = 20 + 1;
-/*
-struct node
-{
-        vector<int> cnt;
-        bool flag = 0;
-        node()
-        {
-                cnt.resize(MXN, 0);
-        }
-        void trans(vector<int> cor)
-        {
-        }
-} tree[4 * N];
 
-vector<int> lazy[4 * N];
-vector<int> sen;
-
-void push(int cur)
-{
-        if (cur * 2 + 1 < 4 * n)
-        {
-        }
-}
-
-node comb(int lhs, int rhs)
-{
-        vector<int> ret(MXN, 0);
-        for (int i = 0; i <= sz; ++i)
-        {
-        }
-}
-
-void update(int cur, int L, int R, int l, int r, vector<int> &cor)
-{
-        if (l >= r)
-                return;
-        push(cur);
-        if (l == L && r == R)
-        {
-                lazy[cur] = cor;
-                return void(push(cur));
-        }
-        int mi = (L + R) >> 1;
-        update(cur * 2, L, mi, l, min(r, mi), cor);
-        update(cur * 2 + 1, mi, R, max(mi, l), r, cor);
-        tree[cur] = comb(cur * 2, cur * 2 + 1);
-}
-
-int query(int cur, int L, int R, int l, int r)
-{
-        if (l >= r)
-                return 0;
-        push(cur);
-        if (l == L && r == R)
-        {
-                return tree[cur].cnt[sz];
-        }
-        int mi = (L + R) >> 1;
-        int s1 = query(cur * 2, L, mi, l, min(r, mi));
-        int s2 = query(cur * 2 + 1, mi, R, max(mi, l), r);
-        return s1 + s2;
-}
-*/
 int f[N],failer[N];
 
 void kmp(string s)
@@ -109,8 +47,6 @@ int main()
         cin >> s;
         sz = (int)s.size();
         cin >> n >> m;
-        //sen.resize(n + 1);
-        //iota(sen.begin(), sen.end(), 0);
 
         kmp(s);
         s+='$' ; 
