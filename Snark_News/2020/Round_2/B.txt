@@ -1,0 +1,162 @@
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+
+#pragma GCC optimize("-Ofast")
+//#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+
+using namespace std;
+using namespace __gnu_pbds;
+
+#define vi vector<int>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+#define loop(_) for (int __ = 0; __ < (_); ++__)
+#define forn(i, n) for (int i = 0; i < n; ++i)
+#define pb push_back
+#define f first
+#define s second
+#define sz(_) ((int)_.size())
+#define all(_) _.begin(), _.end()
+#define uni(_) unique(_)
+#define lb lower_bound
+#define ub upper_bound
+
+using ll = long long;
+using ld = long double;
+
+const int N = 1e5 + 7000;
+const ll mod = 1e9 + 7;
+const ll inf = 2e18;
+
+auto ra = [] {char *p = new char ; delete p ; return ll(p) ; };
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count() * (ra() | 1));
+typedef tree<pii, null_type, less<pii>, rb_tree_tag, tree_order_statistics_node_update> os;
+
+int n;
+vii v;
+ll ans;
+void compress(vi xs, vi ys)
+{
+        sort(all(xs));
+        sort(all(ys));
+        xs.erase(uni(all(xs)), xs.end());
+        ys.erase(uni(all(ys)), ys.end());
+        for (int i = 0; i < n; ++i)
+        {
+                int xa = lb(all(xs), v[i].f) - xs.begin();
+                int ya = lb(all(ys), v[i].s) - ys.begin();
+                v[i] = {xa + 1, ya + 1};
+        }
+}
+
+os mst[N];
+int t;
+vi his;
+void add(int x, int y)
+{
+        for (; x < N; x += x & -x)
+        {
+                his.push_back(x);
+                mst[x].insert({y, ++t});
+        }
+}
+
+int query(int x, int y)
+{
+        int ret = 0;
+        int x1 = N - 1;
+        for (; x1; x1 -= x1 & -x1)
+                ret += (sz(mst[x1]) - mst[x1].order_of_key(make_pair(y, -1)));
+        for (; x; x -= x & -x)
+                ret -= (sz(mst[x]) - mst[x].order_of_key(make_pair(y, -1)));
+        return ret;
+}
+
+void solve(vii p, int L, int R)
+{
+        if (!sz(p) || L >= R)
+                return;
+
+        vii lhs, rhs;
+        int line = (L + R) >> 1;
+
+        for (auto u : p)
+        {
+                if (u.f <= line)
+                        lhs.push_back(u);
+                else
+                        rhs.push_back(u);
+        }
+        sort(all(rhs));
+        sort(all(lhs), [&](pii &i, pii &j) { return i > j; });
+
+        vii le, ri;
+
+        set<int> st;
+        st.insert(0);
+        st.insert(1e9);
+        for (auto u : rhs)
+        {
+                auto it = st.lb(u.s);
+                if (*it > u.s)
+                        --it;
+                if (u.s > *it)
+                        ri.pb({u.s, *it});
+                st.insert(u.s);
+        }
+
+        st.clear();
+        st.insert(1e5 + 10);
+        for (auto u : lhs)
+        {
+                auto it = st.lb(u.s);
+                if (u.s < *it)
+                        le.pb({u.s, *it});
+                st.insert(u.s);
+        }
+        int j = 0;
+        sort(all(le));
+        sort(all(ri));
+        for (auto u : ri)
+        {
+                while (j < sz(le) && le[j].f <= u.f)
+                {
+                        add(le[j].s, le[j].f);
+                        ++j;
+                }
+                ans += query(u.f, u.s);
+        }
+        while (sz(his))
+        {
+                mst[his.back()].clear();
+                his.pop_back();
+        }
+        solve(lhs, L, line);
+        solve(rhs, line + 1, R);
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        //freopen("in.in", "r", stdin);
+        cin >> n;
+        vi xs(n), ys(n);
+        unordered_map<int, int> mp;
+        for (int i = 0; i < n; ++i)
+        {
+                cin >> xs[i] >> ys[i];
+                v.pb({xs[i], ys[i]});
+                mp[xs[i]]++;
+        }
+        for (auto u : mp)
+                ans += --u.s;
+        compress(xs, ys);
+        solve(v, 1, 1e5);
+        cout << ans;
+        return 0;
+}
