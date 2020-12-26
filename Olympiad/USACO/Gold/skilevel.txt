@@ -1,0 +1,101 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define vi vector<int>
+#define pii pair<int, int>
+#define loop(_) for (int __ = 0; __ < (_); ++__)
+#define pb push_back
+#define f first
+#define s second
+#define sz(_) ((int)_.size())
+#define all(_) _.begin(), _.end()
+
+using ll = long long;
+const int N = 500 * 505 * 2 + 7;
+
+int n, m, t, nodes;
+int a[505][505];
+vector<pair<int, pii>> ed;
+vector<int> adj[N];
+
+int fat[N], par[N], sub[N], val[N], up[N][15];
+
+inline int id(int x, int y) { return x * m + y; }
+inline void edge(int u, int v, int w) { ed.push_back({w, {u, v}}); }
+inline int find(int x) { return fat[x] = (x == fat[x] ? x : find(fat[x])); }
+
+void link(int u, int v, int w)
+{
+        u = find(u);
+        v = find(v);
+        if (u != v)
+        {
+                adj[nodes].push_back(u);
+                adj[nodes].push_back(v);
+                fat[u] = fat[v] = nodes;
+                par[u] = par[v] = nodes;
+                val[nodes] = w;
+                ++nodes;
+        }
+}
+
+void dfs(int x)
+{
+        sub[x] = (x < n * m);
+        for (int i = 1; i < 15; ++i)
+                up[x][i] = up[up[x][i - 1]][i - 1];
+        for (auto u : adj[x])
+        {
+                up[u][0] = x;
+                dfs(u);
+                sub[x] += sub[u];
+        }
+}
+
+int main()
+{
+        ios_base::sync_with_stdio(0);
+        cin.tie(0);
+        freopen("skilevel.in", "r", stdin);
+        freopen("skilevel.out", "w", stdout);
+        iota(fat, fat + N, 0);
+        cin >> n >> m >> t;
+        for (int i = 0; i < n; ++i)
+        {
+                for (int j = 0; j < m; ++j)
+                {
+                        cin >> a[i][j];
+                        if (i)
+                                edge(id(i, j), id(i - 1, j), abs(a[i][j] - a[i - 1][j]));
+                        if (j)
+                                edge(id(i, j), id(i, j - 1), abs(a[i][j] - a[i][j - 1]));
+                }
+        }
+        nodes = n * m;
+        sort(all(ed));
+        for (auto u : ed)
+                link(u.s.f, u.s.s, u.f);
+        up[nodes - 1][0] = nodes - 1;
+        dfs(nodes - 1);
+        ll ans = 0;
+        for (int i = 0; i < n; ++i)
+        {
+                for (int j = 0; j < m; ++j)
+                {
+                        int x;
+                        cin >> x;
+                        if (x && t > 1)
+                        {
+                                int cur = id(i, j);
+                                for (int r = 14; ~r; --r)
+                                {
+                                        if (sub[up[cur][r]] < t)
+                                                cur = up[cur][r];
+                                }
+                                ans += val[up[cur][0]];
+                        }
+                }
+        }
+        cout << (t == 1 ? 0 : ans);
+        return 0;
+}
