@@ -1,0 +1,165 @@
+#include <bits/stdc++.h>
+ 
+#pragma GCC optimize("-Ofast")
+#pragma GCC optimize("trapv")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,sse4.2,popcnt,abm,mmx,avx2,tune=native")
+#pragma GCC optimize("-ffast-math")
+#pragma GCC optimize("-funroll-loops")
+ 
+using namespace std;
+ 
+#define vi vector<int>
+#define vll vector<ll>
+#define vii vector<pair<int, int>>
+#define vvi vector<vi>
+#define vvii vector<vii>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+#define loop(_) for (int __ = 0; __ < (_); ++__)
+#define forn(i, n) for (int i = 0; i < n; ++i)
+#define pb push_back
+#define f first
+#define s second
+#define sz(_) ((int)_.size())
+#define all(_) _.begin(), _.end()
+#define uni(_) unique(_)
+#define lb lower_bound
+#define ub upper_bound
+#define si set<int>
+#define ms multiset<int>
+#define qi queue<int>
+#define pq prioriry_queue<int>
+#define mi map<int, int>
+#define inc(i, l, r) for (int i = l; i <= r; i++)
+#define dec(i, l, r) for (int i = l; i >= r; i--)
+ 
+using lll = __int128;
+using ll = long long;
+using ld = long double;
+ 
+const int N = (1 << 20);
+const ll mod = 1e9 + 7;
+const ll inf = 2e18;
+ 
+int n, q;
+ll A[N];
+vii adj[N];
+ll ans[N];
+ 
+struct node
+{
+       int a, b, ab;
+       node() { a = b = ab = 0; }
+       node(int a, int b, int ab) : a(a), b(b), ab(ab) {}
+       node operator+=(node ohs)
+       {
+              ab = max(max(ab, ohs.ab), a + ohs.b);
+              a = max(a, ohs.a);
+              b = max(b, ohs.b);
+              return *this;
+       }
+} tree[N * 2];
+ 
+node get(node lhs, node rhs)
+{
+       node ret;
+       ret.a = max(lhs.a, rhs.a);
+}
+ 
+void pull(int v)
+{
+       tree[v] = tree[v * 2];
+       tree[v] += tree[v * 2 + 1];
+}
+ 
+void build(int v = 1, int L = 0, int R = N - 1)
+{
+       if (L == R)
+       {
+              tree[v] = node(0, A[L], 0);
+              return;
+       }
+       int mid = (L + R) >> 1;
+       build(v * 2, L, mid), build(v * 2 + 1, mid + 1, R);
+       pull(v);
+}
+ 
+void update(int st, int va, int v = 1, int L = 0, int R = N - 1)
+{
+       if (st < L || st > R)
+              return;
+       if (L == R)
+       {
+              tree[v].a = max(tree[v].a, va);
+              tree[v].ab = max(tree[v].ab, tree[v].a + tree[v].b);
+              return;
+       }
+       int mid = (L + R) >> 1;
+       update(st, va, v * 2, L, mid);
+       update(st, va, v * 2 + 1, mid + 1, R);
+       pull(v);
+}
+ 
+node get(int st, int en, int v = 1, int L = 0, int R = N - 1)
+{
+       if (st > R || en < L)
+              return node();
+       if (L >= st && R <= en)
+              return tree[v];
+       int mid = (L + R) >> 1;
+       node ret = get(st, en, v * 2, L, mid);
+       ret += get(st, en, v * 2 + 1, mid + 1, R);
+       return ret;
+}
+ 
+vi candl[N];
+ 
+int main()
+{
+       ios_base::sync_with_stdio(0);
+       cin.tie(0);
+       cin >> n;
+       for (int i = 0; i < n; ++i)
+              cin >> A[i];
+       build();
+       cin >> q;
+       for (int i = 0; i < q; ++i)
+       {
+              int l, r;
+              cin >> l >> r;
+              --l, --r;
+              adj[l].pb({r, i});
+       }
+       stack<int> stk;
+       for (int i = 0; i < n; ++i)
+       {
+              while (sz(stk) && A[stk.top()] < A[i])
+              {
+                     candl[stk.top()].pb(i);
+                     stk.pop();
+              }
+              if (sz(stk))
+              {
+                     candl[stk.top()].pb(i);
+              }
+              stk.push(i);
+       }
+       for (int i = n - 1; ~i; --i)
+       {
+              for (auto u : candl[i])
+              {
+                     int a = i, b = u;
+                     int c = b * 2 - a;
+                     if (c < n)
+                            update(c, A[a] + A[b]);
+              }
+              for (auto u : adj[i])
+              {
+                     node ret = get(i, u.f);
+                     ans[u.s] = ret.ab;
+              }
+       }
+       for (int i = 0; i < q; ++i)
+              cout << ans[i] << "\n";
+       return 0;
+}
