@@ -1,0 +1,24 @@
+class Solution {
+public:
+    int n; 
+    vector<int> a; 
+    int dp[503][503];
+    int solve(int l , int r){
+        if(l + 1 == r)return 0 ; 
+        if(~dp[l][r])return dp[l][r] ; 
+        int ret = 0 ; 
+        for(int j = l + 1; j < r ; ++ j){
+            ret = max(ret , solve(l , j) + solve(j , r) + a[l]*a[j]*a[r] ) ; 
+        }
+        return dp[l][r] = ret; 
+    }
+    
+    int maxCoins(vector<int>& nums) {
+        memset(dp , -1 , sizeof dp) ; 
+        n = (int) nums.size() ; 
+        a.push_back(1) ; 
+        a.insert(a.end() , nums.begin() , nums.end()) ; 
+        a.push_back(1) ; 
+        return solve(0 , n + 1) ; 
+    }
+};
