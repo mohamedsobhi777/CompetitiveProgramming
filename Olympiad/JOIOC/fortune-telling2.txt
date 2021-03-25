@@ -1,0 +1,174 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define vi vector<int>
+#define vll vector<ll>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+#define loop(_) for (int __ = 0; __ < (_); ++__)
+#define pb push_back
+#define f first
+#define s second
+#define sz(_) ((int)_.size())
+#define all(_) _.begin(), _.end()
+#define lb lower_bound
+#define ub upper_bound
+
+using ll = long long;
+using ld = long double;
+
+const int N = 6e5 + 7;
+const ll mod = 1e9 + 7;
+
+int n, k;
+int act[N];
+
+struct fenwick
+{
+       int bit[N];
+       fenwick()
+       {
+              memset(bit, 0, sizeof bit);
+       }
+       void add(int x, int v)
+       {
+              ++x;
+              for (; x < N; x += x & -x)
+                     bit[x] += v;
+       }
+       int upto(int x)
+       {
+              ++x;
+              int ret = 0;
+              for (; x; x -= x & -x)
+                     ret += bit[x];
+              return ret;
+       }
+       inline int get(int l, int r) { return upto(r) - upto(l - 1); }
+} f1;
+
+template <class T>
+struct segtree
+{
+       T tree[4 * N];
+       segtree()
+       {
+              memset(tree, -1, sizeof tree);
+       }
+       T eval(T x, T y) { return max(x, y); }
+       void update(int ix, T val, int node = 1, int L = 0, int R = N - 1)
+       {
+              if (L == R)
+                     return void(tree[node] = val);
+              int mid = (L + R) >> 1;
+              if (ix <= mid)
+                     update(ix, val, node * 2, L, mid);
+              else
+                     update(ix, val, node * 2 + 1, mid + 1, R);
+              tree[node] = eval(tree[node * 2], tree[node * 2 + 1]);
+       }
+       T query(int l, int r, int node = 1, int L = 0, int R = N - 1)
+       {
+              if (l > r || l > R || r < L)
+                     return -1;
+              if (L >= l && R <= r)
+                     return tree[node];
+              int mid = (L + R) >> 1;
+              return eval(query(l, r, node * 2, L, mid), query(l, r, node * 2 + 1, mid + 1, R));
+       }
+};
+
+segtree<int> sg;
+
+int main()
+{
+       ios_base::sync_with_stdio(0);
+       cin.tie(0);
+#ifndef ONLINE_JUDGE
+#endif
+       cin >> n >> k;
+       vii a(n);
+       for (int i = 0; i < n; ++i)
+              cin >> a[i].f >> a[i].s;
+       vi b(k);
+       for (auto &u : b)
+              cin >> u;
+
+       vector<int> v;
+       for (auto u : a)
+       {
+              v.pb(u.f);
+              v.pb(u.s);
+       }
+       for (auto u : b)
+              v.pb(u);
+
+       sort(all(v));
+
+       v.erase(unique(all(v)), v.end());
+
+       for (int i = 0; i < sz(v); ++i)
+       {
+              act[i] = v[i];
+       }
+       auto get = [&](int x) -> int {
+              return lb(all(v), x) - v.begin();
+       };
+       for (int i = 0; i < n; ++i)
+       {
+              a[i].f = get(a[i].f);
+              a[i].s = get(a[i].s);
+       }
+       for (auto &u : b)
+              u = get(u);
+
+       sort(all(a), [&](pii x, pii y) {
+              return max(x.f, x.s) > max(y.f, y.s);
+       });
+
+       vii b2;
+       for (int i = 0; i < k; ++i)
+       {
+              b2.push_back({b[i], i});
+              sg.update(b[i], i);
+       }
+       sort(all(b2));
+       ll sum = 0;
+
+       for (int i = 0; i < n; ++i)
+       {
+
+              while (sz(b2) && b2.back().f >= max(a[i].f, a[i].s))
+              {
+                     f1.add(b2.back().s, 1);
+                     b2.pop_back();
+              }
+              int L = min(a[i].f, a[i].s);
+              int R = max(a[i].f, a[i].s);
+
+              int lst = sg.query(L, R - 1);
+
+              if (~lst)
+              {
+                     if (a[i].f < a[i].s)
+                            swap(a[i].f, a[i].s);
+                     if (f1.get(lst + 1, N - 2) & 1)
+                     {
+                            swap(a[i].f, a[i].s);
+                     }
+              }
+              else
+              {
+                     if (f1.get(0, N - 2) & 1)
+                     {
+                            swap(a[i].f, a[i].s);
+                     }
+              }
+              sum += act[a[i].f];
+       }
+
+       cout << sum;
+       return 0;
+}
