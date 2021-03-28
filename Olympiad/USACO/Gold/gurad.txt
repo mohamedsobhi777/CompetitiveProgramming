@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define vi vector<int>
+#define vll vector<ll>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+#define loop(_) for (int __ = 0; __ < (_); ++__)
+#define pb push_back
+#define f first
+#define s second
+#define sz(_) ((int)_.size())
+#define all(_) _.begin(), _.end()
+#define lb lower_bound
+#define ub upper_bound
+
+using ll = long long;
+using ld = long double;
+
+const int N = 1e5 + 7;
+const ll mod = 1e9 + 7;
+
+int n;
+ll h;
+vector<array<int, 3>> ar;
+
+int solve(int mask)
+{
+       vi arr;
+       ll tot = 0;
+       for (int i = 0; i < n; ++i)
+       {
+              if (mask & (1 << i))
+              {
+                     arr.pb(i);
+                     tot += ar[i][0];
+              }
+       }
+       if (tot < h)
+              return -1;
+       sort(all(arr), [&](int x, int y) {
+              return ar[x][1] + ar[x][2] > ar[y][1] + ar[y][2];
+       });
+       ll saft = 1e18;
+       ll sum = 0;
+       for (int i = sz(arr) - 1; ~i; --i)
+       {
+              saft = min(saft, ar[arr[i]][2] - sum);
+              sum += ar[arr[i]][1];
+       }
+       return saft;
+}
+
+int main()
+{
+       ios_base::sync_with_stdio(0);
+       cin.tie(0);
+#ifndef ONLINE_JUDGE
+       freopen("guard.in", "r", stdin);
+       freopen("guard.out", "w", stdout);
+#endif
+       cin >> n >> h;
+       for (int i = 0; i < n; ++i)
+       {
+              int hei, wei, str;
+              cin >> hei >> wei >> str;
+              ar.pb({hei, wei, str});
+       }
+       int ans = -1;
+       for (int i = 1; i < (1 << n); ++i)
+       {
+              ans = max(ans, solve(i));
+       }
+       if (ans == -1)
+              cout << "Mark is too tall";
+       else
+              cout << ans;
+       return 0;
+}
