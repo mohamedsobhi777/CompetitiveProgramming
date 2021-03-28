@@ -1,0 +1,160 @@
+#include <bits/stdc++.h>
+#include "werewolf.h"
+using namespace std;
+const int N = 8e5 + 7;
+
+int n, m, col;
+vector<int> le, ri;
+int act[N];
+vector<int> adj[N];
+vector<int> QL[N], QR[N];
+int ST[N], EN[N];
+int ro1[N], ro2[N];
+
+struct tree
+{
+       vector<int> adj[N];
+       int st[N], en[N], vec[N], t;
+       tree() {}
+       void dfs(int x, int p)
+       {
+              st[x] = ++t;
+              if (x < n)
+                     vec[t] = x;
+              else
+                     vec[t] = -1;
+              for (auto u : adj[x])
+              {
+                     if (u == p)
+                            continue;
+
+                     dfs(u, x);
+              }
+              en[x] = ++t;
+              vec[t] = -1;
+       }
+
+} t1, t2;
+
+struct dsu
+{
+       int fat[N];
+       dsu() { iota(fat, fat + N, 0); }
+       int find(int x) { return fat[x] = x == fat[x] ? x : find(fat[x]); }
+       void link(int u, int v)
+       {
+              u = find(u), v = find(v);
+              if (u > v)
+                     swap(u, v);
+              fat[u] = v;
+       }
+       inline bool same(int u, int v) { return find(u) == find(v); }
+} d;
+
+void build(tree &t, int dir)
+{
+       dsu d;
+       int lst = n;
+       ++col;
+       for (int i = (dir == 1 ? 0 : n - 1); i >= 0 && i < n; i += dir)
+       {
+              for (auto u : adj[i])
+              {
+                     if (act[u] == col)
+                     {
+                            int x = d.find(u);
+                            if (!d.same(lst, x))
+                            {
+                                   t.adj[lst].push_back(x);
+                                   d.link(x, lst);
+                            }
+                     }
+              }
+              t.adj[lst].push_back(i);
+              d.link(i, lst);
+              ++lst;
+              if (dir == -1)
+              {
+                     for (auto u : QL[i])
+                     {
+                            ro1[u] = d.find(ST[u]);
+                     }
+              }
+              else
+              {
+                     for (auto u : QR[i])
+                     {
+                            ro2[u] = d.find(EN[u]);
+                     }
+              }
+              act[i] = col;
+       }
+}
+
+vector<int> bit[N];
+
+void add(int x, int v)
+{
+       x ++ ; 
+       for (; x < N; x += x & -x)
+              bit[x].push_back(v);
+}
+
+int get(int x, int y)
+{
+       int ret = 0 ;
+       ++ x; 
+       for(;x;x-=x&-x){
+              ret += upper_bound(bit[x].begin() , bit[x].end() , y) - bit[x].begin() ;
+       }
+       return ret; 
+}
+
+int query(int l, int r, int x, int y)
+{
+       return get(r, y) - get(r, x - 1) - get(l - 1, y) + get(l - 1, x - 1);
+}
+
+std::vector<int> check_validity(int _N, std::vector<int> X, std::vector<int> Y,
+                                std::vector<int> S, std::vector<int> E,
+                                std::vector<int> L, std::vector<int> R)
+{
+       n = _N, m = X.size();
+       le = X, ri = Y;
+       int Q = S.size();
+       std::vector<int> A(Q);
+       for (int i = 0; i < m; ++i)
+       {
+              adj[X[i]].push_back(Y[i]);
+              adj[Y[i]].push_back(X[i]);
+       }
+       for (int i = 0; i < Q; ++i)
+       {
+              QL[L[i]].push_back(i);
+              QR[R[i]].push_back(i);
+              ST[i] = S[i];
+              EN[i] = E[i];
+       }
+       build(t1, -1);
+       build(t2, 1);
+       t1.dfs(2 * n - 1, 2 * n - 1), t2.dfs(2 * n - 1, 2 * n - 1);
+       for (int i = 0; i < n; ++i)
+       {
+              t2.vec[t2.st[i]] = t1.st[i];
+       }
+       for(int i = 0 ;i < n ; ++ i){
+              add(t2.st[i] , t2.vec[ t2.st[i] ] ) ; 
+       }
+       for(int i = 0 ;i < N ;++ i){
+              sort(bit[i].begin() , bit[i].end()) ;
+       }
+       for (int i = 0; i < Q; ++i)
+       {
+              int L = t1.st[ro1[i]], R = t1.en[ro1[i]];
+              if( query( t2.st[ ro2[i] ] , t2.en[ ro2[i] ] , L , R) ){
+                     A[i] = 1; 
+              }
+       }
+
+       return A;
+}
