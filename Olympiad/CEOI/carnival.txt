@@ -1,0 +1,141 @@
+#include <bits/stdc++.h>
+ 
+using namespace std;
+ 
+#define vi vector<int>
+#define vll vector<ll>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+#define loop(_) for (int __ = 0; __ < (_); ++__)
+#define pb push_back
+#define f first
+#define s second
+#define sz(_) ((int)_.size())
+#define all(_) _.begin(), _.end()
+#define lb lower_bound
+#define ub upper_bound
+ 
+using ll = long long;
+using ld = long double;
+ 
+const int N = 1e5 + 7;
+const ll mod = 1e9 + 7;
+ 
+int n;
+ 
+struct dsu
+{
+       int fat[N];
+       dsu()
+       {
+              iota(fat, fat + N, 0);
+       }
+       int find(int x) { return fat[x] = (x == fat[x] ? x : find(fat[x])); }
+       void link(int u, int v)
+       {
+              u = find(u), v = find(v);
+              if (u < v)
+                     swap(u, v);
+              fat[u] = v;
+       }
+       bool same(int u, int v)
+       {
+              return find(u) == find(v);
+       }
+} d;
+ 
+int ask(vi query)
+{
+       assert(sz(query));
+       if (sz(query) == 1)
+              return 1;
+       cout << sz(query) << " ";
+       for (auto u : query)
+              cout << u << " ";
+       cout << endl;
+       cout << flush;
+       int ret;
+       cin >> ret;
+       return ret;
+}
+ 
+bool ok(vector<int> v) { return ask(v) < sz(v); }
+ 
+void solve(vector<int> ve)
+{
+       int an = ask(ve) ; 
+       if(an == sz(ve))return ;
+       if (an == 1)
+       {
+              for (auto u : ve)
+              {
+                     d.link(u, ve[0]);
+              }
+              return;
+       }
+       vector<int> lhs, rhs;
+       while (1)
+       {
+              lhs.clear();
+              rhs.clear();
+              random_shuffle(all(ve));
+              for (int i = 0; i < sz(ve); ++i)
+              {
+                     if (i < sz(ve) / 2)
+                     {
+                            lhs.pb(ve[i]);
+                     }
+                     else
+                     {
+                            rhs.pb(ve[i]);
+                     }
+              }
+              if (ok(lhs))
+              {
+                     return void(solve(lhs));
+              }
+              else if (ok(rhs))
+              {
+                     return void(solve(rhs));
+              }
+       }
+}
+ 
+int main()
+{
+       ios_base::sync_with_stdio(0);
+       cin.tie(0);
+#ifndef ONLINE_JUDGE
+       // freopen("in.in", "r", stdin);
+#endif
+       cin >> n;
+       while (1)
+       {
+              vi qu;
+              for (int i = 1; i <= n; ++i)
+              {
+                     if (d.find(i) == i)
+                     {
+                            qu.pb(i);
+                     }
+              }
+              if (!ok(qu))
+                     break;
+              solve(qu);
+       }
+ 
+       cout << "0 ";
+       vector<int> col(n + 1, 0);
+       int co = 0;
+       for (int i = 1; i <= n; ++i)
+       {
+              int x = d.find(i);
+              if (!col[x])
+                     col[x] = ++co;
+              cout << col[x] << " ";
+       }
+       cout << endl;
+       cout << flush;
+       return 0;
+}
