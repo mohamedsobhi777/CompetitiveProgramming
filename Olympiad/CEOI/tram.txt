@@ -1,0 +1,230 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define vi vector<int>
+#define vll vector<ll>
+#define vii vector<pair<int, int>>
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+#define loop(_) for (int __ = 0; __ < (_); ++__)
+#define pb push_back
+#define f first
+#define s second
+#define sz(_) ((int)_.size())
+#define all(_) _.begin(), _.end()
+#define lb lower_bound
+#define ub upper_bound
+
+using ll = long long;
+using ld = long double;
+
+const int N = 2e5 + 7;
+const ll mod = 1e9 + 7;
+
+int n, m;
+int vis[N][2];
+int xs[N], ys[N];
+multiset<int> mul;
+
+set<pii> rst, al;
+set<pair<ll, pii>> gt;
+
+ll calc(int x, int y, int l = -1, int r = -1)
+{
+       ll ret = 1e18;
+       if (mul.empty())
+              return ret;
+       auto eval = [&](int u) -> void {
+              for (int i = 0; i < 2; ++i)
+              {
+                     if (u >= 0 && u < n && vis[u][i])
+                     {
+                            ret = min(ret, 1ll * (u - x) * (u - x) + 1ll * (i - y) * (i - y));
+                     }
+              }
+       };
+       if (l == -1)
+       {
+
+              auto it = mul.lb(x);
+              if (it != mul.end())
+                     eval(*it);
+              if (it != mul.begin())
+                     eval(*(--it));
+       }
+       else
+       {
+              eval(l - 1);
+              eval(r + 1);
+       }
+       return ret;
+}
+
+map<pii, ll> db;
+
+pair<ll, pii> solve(int x, int y)
+{
+       ll Min = 0;
+       int wx = -1, wy = -1;
+       int mi = (x + y) >> 1;
+       for (auto mid : {mi, mi + 1})
+              for (int i = 0; i < 2; ++i)
+              {
+                     if (mid < x || mid > y)
+                            continue;
+                     ll w = calc(mid, i, x, y);
+                     if (w > Min || (w == Min && make_pair(mid, i) < make_pair(wx, wy)))
+                     {
+                            Min = w;
+                            wx = mid, wy = i;
+                     }
+              }
+       return {Min, {wx, wy}};
+}
+
+void Insert(int x, int y)
+{
+       rst.insert({x, y});
+       gt.insert({-solve(x, y).f, {x, y}});
+       db[{x, y}] = -solve(x, y).f;
+}
+
+void Erase(int x, int y)
+{
+       rst.erase({x, y});
+       gt.erase({db[{x, y}], {x, y}});
+}
+
+int main()
+{
+       ios_base::sync_with_stdio(0);
+       cin.tie(0);
+#ifndef ONLINE_JUDGE
+       // freopen("in.in", "r", stdin);
+#endif
+       cin >> n >> m;
+       for (int i = 0; i < n; ++i)
+              al.insert({i, 0}), al.insert({i, 1});
+       Insert(0, n - 1);
+       for (int i = 0; i < m; ++i)
+       {
+              char c;
+              cin >> c;
+              if (c == 'E')
+              {
+                     ll Min = 0;
+                     int wx = 0, wy = 0;
+                     if (sz(gt))
+                     {
+                            vii vc = {{0, 0}, {0, 1}, {n - 1, 0}, {n - 1, 1}};
+                            for (auto u : vc)
+                            {
+                                   ll sc = calc(u.f, u.s);
+                                   if (sc > Min)
+                                          Min = sc, wx = u.f, wy = u.s;
+                            }
+
+                            auto it = gt.begin();
+                            int lhs = (*it).s.f, rhs = (*it).s.s;
+                            pair<ll, pii> sol = solve(lhs, rhs);
+                            if (sol.f > Min || (sol.f == Min && sol.s < make_pair(wx, wy)))
+                            {
+                                   Min = sol.f;
+                                   wx = sol.s.f, wy = sol.s.s;
+                                   // assert(sol.f == -(*it).f);
+                            }
+                            if (Min <= 1)
+                            {
+                                   auto bg = al.begin();
+                                   wx = (*bg).f, wy = (*bg).s;
+                            }
+                     }
+                     else if (!sz(mul))
+                            ;
+                     else
+                     {
+                            auto bg = al.begin();
+                            wx = (*bg).f, wy = (*bg).s;
+                     }
+
+                     xs[i] = wx, ys[i] = wy;
+                     vis[wx][wy] = 1;
+                     auto it = rst.lb({wx + 1, -1});
+                     mul.insert(wx);
+
+                     if (it != rst.begin())
+                     {
+                            --it;
+                            if (wx >= (*it).f && wx <= (*it).s)
+                            {
+                                   pii u = *it;
+                                   int x = u.f, y = u.s;
+                                   Erase(x, y);
+                                   if (x <= wx - 1)
+                                          Insert(x, wx - 1);
+                                   if (wx + 1 <= y)
+                                          Insert(wx + 1, y);
+                            }
+                     }
+
+                     al.erase({wx, wy});
+                     cout << ++wx << " " << ++wy << "\n";
+              }
+              else
+              {
+                     int p;
+                     cin >> p;
+                     --p;
+
+                     mul.erase(mul.find(xs[p]));
+                     vis[xs[p]][ys[p]] = 0;
+                     al.insert({xs[p], ys[p]});
+                     if (vis[xs[p]][0] == vis[xs[p]][1])
+                     {
+                            int nx = xs[p], ny = xs[p];
+                            auto it = rst.lb({xs[p], -1});
+                            pii del = {-1, -1};
+                            if (it != rst.end() && (*it).f == ny + 1)
+                            {
+                                   ny = (*it).s;
+                                   del = {(*it).f, (*it).s};
+                            }
+                            if (it != rst.begin())
+                            {
+                                   --it;
+                                   if ((*it).s == nx - 1)
+                                   {
+                                          nx = (*it).f;
+                                          Erase((*it).f, (*it).s);
+                                   }
+                            }
+                            if (~del.f)
+                                   Erase(del.f, del.s);
+                            Insert(nx, ny);
+                     }
+                     else
+                     {
+                            int nx = xs[p], ny = xs[p];
+                            auto it = rst.lb({xs[p], -1});
+                            pii del = {-1, -1};
+                            if (it != rst.end() && (*it).f == ny + 1)
+                            {
+                                   del = {(*it).f, (*it).s};
+                            }
+                            if (it != rst.begin())
+                            {
+                                   --it;
+                                   if ((*it).s == nx - 1)
+                                   {
+                                          Erase((*it).f, (*it).s);
+                                          Insert((*it).f, (*it).s);
+                                   }
+                            }
+                            if (~del.f)
+                                   Erase(del.f, del.s), Insert(del.f, del.s);
+                     }
+              }
+       }
+       return 0;
+}
