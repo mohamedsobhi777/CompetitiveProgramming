@@ -1,4 +1,4 @@
-#include "kindergarten.h"
+//#include "kindergarten.h"
 #include <vector>
 #include<bits/stdc++.h> 
 
@@ -15,15 +15,16 @@ using ll = long long ;
 using ld = long double ; 
 
 const int N = 3e5 + 7 ; 
-const int inf = -1e5 - 5 ;
+const int inf = 1e5 + 5 ;
 ll ans[N] ; 
 int n , k ; 
 
  
 typedef long long LL;
 
-#define MAXLC 200000
+#define MAXLC 100005
 #define INF (1LL<<60)
+
 
 inline ll f(ll m , ll b , ll x){return 1ll * x * m + b ;}
 
@@ -36,7 +37,7 @@ struct lichao{
 
                 ll mid =  (lo + hi) / 2 ; 
                 bool bl = f(nm , nb , lo) < f(m , b , lo) ; 
-                bool bm = f(nm , nb , mid) < f(m , b , minid) ; 
+                bool bm = f(nm , nb , mid) < f(m , b , mid) ; 
                 bool br = f(nm , nb , hi) < f(m , b , hi) ; 
 
                 if(bm){
@@ -48,10 +49,10 @@ struct lichao{
                         return ; 
                 if(bl != bm){
                         if(!l)l = new lichao ; 
-                        add_line(nm , nb , lo , mid - 1) ; 
+                        l->add_line(nm , nb , lo , mid - 1) ; 
                 }else if(br != bm){
                         if(!r)r = new lichao ; 
-                        add_line(nm , nb , mid + 1 , hi) ;
+                        r->add_line(nm , nb , mid + 1 , hi) ;
                 }
 
         }
@@ -73,7 +74,7 @@ struct lichao{
                 l = nullptr , r = nullptr ; 
         }
 
-} tree[N*4] ; 
+} tree[4*N];
 
 void update(int node , int L , int R , int ix , pair<ll , ll > val ){
         tree[node].add_line(val.first , val.second) ; 
