@@ -1,0 +1,140 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 2e3 + 7;
+
+int n;
+bool adj[N][N];
+
+int main()
+{
+       ios_base::sync_with_stdio(0);
+       cin.tie(0);
+#ifndef ONLINE_JUDGE
+#endif
+
+       cin >> n;
+
+       for (int i = 1; i < n; ++i)
+       {
+              for (int j = 0; j < i; ++j)
+              {
+                     int d;
+                     cin >> d;
+                     adj[j][i] = d;
+                     adj[i][j] = !d;
+              }
+       }
+
+       vector<int> ati(n, 0);
+       vector<pair<int, int>> verts;
+
+       for (int i = 0; i < n; ++i)
+       {
+              for (int j = 0; j < n; ++j)
+              {
+                     ati[i] += adj[j][i];
+              }
+              verts.push_back({ati[i], i});
+       }
+
+       sort(verts.begin(), verts.end());
+
+       vector<int> count_back(n, 0);
+       for (int i = 0; i < n; ++i)
+       {
+              for (int j = 0; j < i; ++j)
+              {
+                     if (adj[ verts[i].second ][ verts[j].second ])
+                     {
+                            count_back[j]++;
+                            count_back[i]--;
+                     }
+              }
+       }
+       for (int i = 1; i < n; ++i)
+              count_back[i] += count_back[i - 1];
+              
+       vector<vector<int>> ans(n) ; 
+
+       for (int st = 0, en; st < n; st = en)
+       {
+              en = st;
+              while (count_back[en] != 0 )
+                     ++en;
+              ++en;
+
+              vector<int> cycle;
+
+              for (int z = st; z < en; ++z)
+              {
+                     int cur = verts[z].second;
+
+                     if (cur == -1)
+                            continue;
+
+                     if (cycle.empty())
+                     {
+                            cycle.push_back(cur);
+                            continue;
+                     }
+
+                     vector<int> cur_path = {cur};      
+                     while (true)
+                     {
+                            for (int i = 0; i < cycle.size(); ++i)
+                            {
+                                   if (adj[cycle[i]][cur_path.front()] && adj[cur_path.back()][cycle[(i + 1) % cycle.size()]])
+                                   {
+                                          cycle.insert(cycle.begin() + i + 1, cur_path.begin() , cur_path.end());
+                                          goto done;
+                                   }
+                            }
+
+                            bool dir = adj[ cycle[0] ][ cur ] ; 
+                     
+                            for(int a = z + 1; true ;++ a){
+                                   if(a>=n)exit(0) ;
+                                   int nxt = verts[a].second ;
+                                   if(nxt == -1)continue; 
+
+                                   if( dir ? adj[ cur_path.back() ][ nxt ] : adj[nxt][ cur_path.front() ] ){
+                                          verts[a].second = -1 ; 
+                                          if(dir) cur_path.push_back(nxt) ; 
+                                          else cur_path.insert(cur_path.begin(),nxt);
+                                          break;
+                                   }
+                            }
+                     }
+
+              done:
+
+                  ;
+              }
+              for (auto &v : ans)
+              {
+                     if (!v.empty())
+                            v.insert(v.end(), cycle.begin(), cycle.end());
+              }
+
+              for (int i = 0; i < (int)cycle.size(); ++i)
+              {
+                     auto &u = ans[cycle[i]];
+                     u.insert(u.end(), cycle.begin() + i, cycle.end());
+                     u.insert(u.end(), cycle.begin(), cycle.begin() + i);
+              }
+       }
+
+       for (int i = 0; i < n; ++i)
+       {
+              cout << ans[i].size() << " ";
+              for (auto u : ans[i])
+              {
+                     cout << ++u << " ";
+              }
+              cout << endl;
+       }
+
+       return 0;
+}
