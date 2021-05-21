@@ -1,0 +1,140 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1e6 + 7;
+const int mod = 1e9 + 7 ; 
+
+int n;
+int ans[N] , viz[N], vis[N] ; 
+vector<pair<int,int> > adj[N] ; 
+
+vector<int> dogs, nods; 
+long long sol = 1ll; 
+bool flag = 1 ;
+
+void dfs(int x){
+
+       vis[x] = 1; 
+       nods.push_back(x) ; 
+
+       for(auto u: adj[x]){
+              int nxt = u.first ; 
+              if(viz[nxt] || vis[u.first]){
+                     continue; 
+              }
+              dfs(nxt) ; 
+       }
+
+}
+
+int main()
+{
+       ios_base::sync_with_stdio(0);
+       cin.tie(0);
+#ifndef ONLINE_JUDGE
+#endif
+       cin >> n ; 
+
+       vector< array<int,3 > > poten; 
+       for(int i = 1 ;i <= n;++ i){
+              char c ; cin >> c ; 
+              if(c == 'T'){
+                     int x; cin >> x ; 
+                     ans[i] =x ; 
+                     if(viz[x]){
+                            sol = flag = 0 ; 
+                     }
+                     viz[x] = 1; 
+
+              }else{
+                     int u , v ; cin >> u >> v; 
+                     poten.push_back({i , u , v}) ; 
+                     adj[u].push_back({v , i}) ; 
+                     adj[v].push_back({u , i}) ; 
+              }
+       }
+
+       queue<int> qu ; 
+       for(int i =1 ;i <= n;++ i){
+              if(viz[i]){
+                     qu.push(i) ; 
+              }
+       }
+
+       while(qu.size()){
+              int tp = qu.front() ; 
+              qu.pop() ; 
+
+              for(auto u : adj[tp]){
+                     int nxt = u.first ; 
+                     if(!viz[nxt]){
+                            if(viz[nxt]){
+                                   flag = sol = 0 ; 
+                            }
+                            ans[u.second] = nxt; 
+                            qu.push(nxt) ; 
+                            viz[nxt] = 1; 
+                     }
+              }
+       }
+
+       for(int i = 1;i <= n;++ i){
+              if(!viz[i] && !vis[i]){
+              
+                     nods.clear() ; 
+                     dogs.clear() ;       
+                     dfs(i) ; 
+
+                     map<int,int> ins ; 
+                     int tot = 0; 
+                     for(auto u : nods){
+                            for(auto u2 : adj[u]){
+                                   if( !viz[u2.first] ){
+                                          ins[u2.first] ++ ; 
+                                          ++ ins[u] ; 
+                                          ++ tot ; 
+                                   }
+                            }
+                     }
+
+                     if(tot / 2 != (int) nods.size() )flag = sol = 0 ; 
+
+                     queue<int> qu ; 
+
+                     for(auto u : ins){
+                            if(u.second == 1){
+                                   qu.push(u.first) ; 
+                            }
+                     }
+                     int cnt = nods.size() ; 
+                     while(qu.size()){
+                            int tp = qu.front() ; 
+                            qu.pop() ; 
+                            for(auto u : adj[tp]){
+                                   if( !viz[u.first] ){
+                                          -- ins[u.first] ; 
+                                          -- ins[tp] ; 
+                                          if(ins[u.first] == 1){
+                                                 qu.push(u.first) ; 
+                                                 -- cnt;  
+                                          }
+                                   }
+                            }
+                     }
+                     
+                     sol = 1ll * sol * 2 % mod ; 
+                     flag&=!cnt;  
+              }
+       }
+
+       if(flag){
+              cout <<"TAK\n";
+              for(int i = 1;i <= n ; ++ i)cout << ans[i] << endl ;
+       }else{
+              cout <<"NIE\n";
+              cout << sol ;
+       }
+
+       return 0;
+}
