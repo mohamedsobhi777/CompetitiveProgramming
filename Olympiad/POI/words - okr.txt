@@ -1,0 +1,51 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1e6 + 7;
+int n;
+
+vector<int> Z(string s)
+{
+    int n = s.size();
+    vector<int> z(n);
+    int x = 0, y = 0;
+    for (int i = 1; i < n; i++) {
+        z[i] = max(0,min(z[i-x],y-i+1));
+        while (i+z[i] < n && s[z[i]] == s[i+z[i]]) {
+            x = i; y = i+z[i]; z[i]++;
+        }
+    }
+    return z ; 
+}
+
+int arr[N] ; 
+
+int main()
+{
+       ios_base::sync_with_stdio(0);
+       cin.tie(0);
+#ifndef ONLINE_JUDGE
+#endif
+       string st; 
+       cin >> n >> st ; 
+       vector<int> zarr = Z(st) ; 
+       long long answer = 0 ; 
+
+       for(int i = 0; i + 1 < n ; ++ i){
+              int j = min(i + 1, zarr[i + 1] ) + i ; 
+              arr[i] = j ; 
+       }      
+
+       vector<int> hill ; 
+       for(int i = n - 1; ~ i; -- i){
+              while(hill.size() && hill.back() <= arr[i]){
+                     answer += i + 1; 
+                     hill.pop_back() ; 
+              }
+              hill.push_back(i) ; 
+       }
+
+       cout << answer ; 
+       return 0;
+}
